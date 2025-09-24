@@ -264,14 +264,25 @@ async def cache_update_loop():
 
 async def main():
     """Главная функция"""
-    logger.info("MODX Cache: Starting MODX Cache Scheduler")
+    import sys
     
-    try:
-        await cache_update_loop()
-    except KeyboardInterrupt:
-        logger.info("MODX Cache: Scheduler terminated")
-    except Exception as e:
-        logger.error(f"MODX Cache: Fatal error: {e}")
+    if len(sys.argv) > 1 and sys.argv[1] == "--once":
+        # Режим для scheduler job - выполнить один раз
+        logger.info("MODX Cache: Starting one-time cache update")
+        try:
+            await update_cache()
+            logger.info("MODX Cache: One-time update completed")
+        except Exception as e:
+            logger.error(f"MODX Cache: One-time update failed: {e}")
+    else:
+        # Режим для worker dyno - бесконечный цикл
+        logger.info("MODX Cache: Starting MODX Cache Scheduler")
+        try:
+            await cache_update_loop()
+        except KeyboardInterrupt:
+            logger.info("MODX Cache: Scheduler terminated")
+        except Exception as e:
+            logger.error(f"MODX Cache: Fatal error: {e}")
 
 
 if __name__ == "__main__":
