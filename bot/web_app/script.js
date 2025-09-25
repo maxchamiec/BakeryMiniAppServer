@@ -1979,15 +1979,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         window.isChangingView = true;
         
-        // Сохраняем позицию скролла текущего view перед переходом
-        const currentView = getCurrentView();
-        if (currentView && currentView !== viewName) {
-            if (currentView === 'products' && currentProductCategory) {
-                saveScrollPosition(currentView, currentProductCategory);
-            } else {
-                saveScrollPosition(currentView);
-            }
-        }
+        // Позиция скролла сохраняется в showProductScreen() перед переходом к продукту
 
         // Hide all views first
         if (welcomeContainer) welcomeContainer.classList.add('hidden');
@@ -2532,6 +2524,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             productListElement.querySelectorAll('.details-text').forEach(text => {
                 text.addEventListener('click', async (e) => {
                     const productId = e.target.dataset.productId;
+                    // Сохраняем позицию скролла перед переходом к продукту
+                    saveScrollPosition('products', categoryKey);
                     await showProductScreen(productId, categoryKey);
                 });
             });
@@ -2540,6 +2534,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             productListElement.querySelectorAll('.clickable-image').forEach(image => {
                 image.addEventListener('click', async (e) => {
                     const productId = e.target.dataset.productId;
+                    // Сохраняем позицию скролла перед переходом к продукту
+                    saveScrollPosition('products', categoryKey);
                     await showProductScreen(productId, categoryKey);
                 });
             });
@@ -2554,6 +2550,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const productCard = e.target.closest('.product-card');
                     if (productCard) {
                         const productId = productCard.dataset.productId;
+                        // Сохраняем позицию скролла перед переходом к продукту
+                        saveScrollPosition('products', categoryKey);
                         await showProductScreen(productId, categoryKey);
                     }
                 });
@@ -3757,9 +3755,6 @@ function addErrorClearingListeners() {
 
         // Сохраняем текущую категорию для возврата
         currentProductCategory = categoryKey;
-        
-        // Сохраняем позицию скролла перед переходом к продукту
-        saveScrollPosition('products', categoryKey);
 
         const screenBody = document.getElementById('product-screen-body');
         if (!screenBody) {
