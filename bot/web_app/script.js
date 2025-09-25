@@ -1522,6 +1522,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let productsDataValid = false; // Флаг для отслеживания актуальности данных о продуктах
     let previousProductsData = null; // Для сравнения данных продуктов в auto-refresh
     let previousCategoriesData = null; // Для сравнения данных категорий в auto-refresh
+    let isDataLoading = true; // Флаг для предотвращения кликов во время загрузки данных
     
     // ===== SCROLL POSITION MANAGEMENT =====
     let scrollPositions = {}; // Хранение позиций скролла для каждого view
@@ -2299,6 +2300,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 version: data.metadata?.version || 'unknown'
             });
             
+            // Mark data as loaded to allow category clicks
+            isDataLoading = false;
+            
             return data;
             
         } catch (error) {
@@ -2451,22 +2455,51 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 `;
                             categoryCard.addEventListener('click', () => {
+                    // Проверяем, загружены ли данные
+                    if (isDataLoading) {
+                        console.warn('Data is still loading, please wait...');
+                        return;
+                    }
                     displayView('products', category.key);
                     localStorage.setItem('lastProductCategory', category.key);
                 });
+                
+                // Добавляем визуальную индикацию загрузки
+                if (isDataLoading) {
+                    categoryCard.style.opacity = '0.6';
+                    categoryCard.style.pointerEvents = 'none';
+                }
                 if (categoriesGrid) categoriesGrid.appendChild(categoryCard);
             });
             if (categoriesContainer) categoriesContainer.appendChild(categoriesGrid);
             
             // Hide loading logo after categories are loaded
             if (loadingLogoContainer) loadingLogoContainer.classList.add('hidden');
+            
+            // Activate categories after data is loaded
+            activateCategories();
         } catch (error) {
             console.error('Ошибка при загрузке категорий:', error);
             console.error('Failed to load categories. Please try again later.');
         }
     }
 
+    // Function to activate categories after data is loaded
+    function activateCategories() {
+        const categoryCards = document.querySelectorAll('.category-card');
+        categoryCards.forEach(card => {
+            card.style.opacity = '1';
+            card.style.pointerEvents = 'auto';
+        });
+    }
+
     async function loadProducts(categoryKey) {
+        // Проверяем, загружены ли данные
+        if (isDataLoading) {
+            console.warn('Data is still loading, please wait...');
+            return;
+        }
+        
         // Данные уже загружены через fetchAllData, просто проверяем их наличие
         if (!productsData[categoryKey]) {
             console.warn('No products found for this category.');
