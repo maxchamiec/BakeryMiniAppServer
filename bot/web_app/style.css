@@ -143,9 +143,10 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     height: 200px;
     margin-left: calc(-50vw + 50%); /* Center the full-width element */
     margin-right: calc(-50vw + 50%);
-    margin-top: -20px; /* Move to top edge of screen */
+    margin-top: -40px; /* Move further to top edge to cover main-page-logo-container */
     overflow: hidden;
     margin-bottom: 20px;
+    z-index: 10; /* Ensure it's above main-page-logo-container */
 }
 
 .category-header-img {
@@ -207,6 +208,11 @@ button, a, input, select, textarea, .clickable-image, .details-text {
 /* Hide main logo container on products screen - completely hidden under category-image-header */
 .products-grid .main-page-logo-container {
     display: none;
+}
+
+/* Ensure main-page-logo-container has lower z-index when visible */
+.main-page-logo-container {
+    z-index: 1;
 }
 
 /* Make first product card overlap category-image-header by 1/3 of main-page-logo-container height (approx 25px) */
