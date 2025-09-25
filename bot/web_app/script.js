@@ -1522,6 +1522,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let productsDataValid = false; // Флаг для отслеживания актуальности данных о продуктах
     let previousProductsData = null; // Для сравнения данных продуктов в auto-refresh
     let previousCategoriesData = null; // Для сравнения данных категорий в auto-refresh
+    
+    // ===== SCROLL POSITION MANAGEMENT =====
+    let scrollPositions = {}; // Хранение позиций скролла для каждого view
+    let isRestoringScroll = false; // Флаг для предотвращения конфликтов при восстановлении скролла
 
     const CATEGORY_DISPLAY_MAP = {
         "category_16": { name: "Ремесленный хлеб", icon: "images/bread1.svg?v=1.3.109&t=1758518052", image: "images/bread1.svg?v=1.3.109&t=1758518052" },
@@ -1877,12 +1881,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // ===== SCROLL POSITION MANAGEMENT FUNCTIONS =====
+    
+    /**
+     * Сохраняет текущую позицию скролла для указанного view
+     * @param {string} viewName - Название view (например, 'products', 'categories')
+     * @param {string} categoryKey - Ключ категории (для products view)
+     */
+    function saveScrollPosition(viewName, categoryKey = null) {
+        if (isRestoringScroll) return; // Не сохраняем во время восстановления
+        
+        try {
+            const scrollKey = categoryKey ? `${viewName}_${categoryKey}` : viewName;
+            const scrollPosition = {
+                window: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
+                timestamp: Date.now()
+            };
+            
+            scrollPositions[scrollKey] = scrollPosition;
+        } catch (error) {
+            console.error('❌ Error saving scroll position:', error);
+        }
+    }
+    
+    /**
+     * Восстанавливает позицию скролла для указанного view
+     * @param {string} viewName - Название view
+     * @param {string} categoryKey - Ключ категории (для products view)
+     * @param {boolean} smooth - Плавная прокрутка (по умолчанию true)
+     */
+    function restoreScrollPosition(viewName, categoryKey = null, smooth = true) {
+        if (isRestoringScroll) return; // Предотвращаем множественные вызовы
+        
+        try {
+            const scrollKey = categoryKey ? `${viewName}_${categoryKey}` : viewName;
+            const savedPosition = scrollPositions[scrollKey];
+            
+            if (!savedPosition) {
+                return;
+            }
+            
+            // Проверяем, что позиция не слишком старая (не старше 5 минут)
+            const maxAge = 5 * 60 * 1000; // 5 минут
+            if (Date.now() - savedPosition.timestamp > maxAge) {
+                delete scrollPositions[scrollKey];
+                return;
+            }
+            
+            isRestoringScroll = true;
+            const targetPosition = savedPosition.window;
+            
+            // Плавная прокрутка к сохраненной позиции
+            if (smooth) {
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            } else {
+                window.scrollTo(0, targetPosition);
+            }
+            
+            // Сбрасываем флаг после завершения анимации
+            setTimeout(() => {
+                isRestoringScroll = false;
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Error restoring scroll position:', error);
+            isRestoringScroll = false;
+        }
+    }
+    
+    /**
+     * Очищает сохраненную позицию скролла для указанного view
+     * @param {string} viewName - Название view
+     * @param {string} categoryKey - Ключ категории (для products view)
+     */
+    function clearScrollPosition(viewName, categoryKey = null) {
+        const scrollKey = categoryKey ? `${viewName}_${categoryKey}` : viewName;
+        if (scrollPositions[scrollKey]) {
+            delete scrollPositions[scrollKey];
+        }
+    }
+
     async function displayView(viewName, categoryKey = null) {
         // Prevent multiple simultaneous view changes
         if (window.isChangingView) {
             return;
         }
         window.isChangingView = true;
+        
+        // Сохраняем позицию скролла текущего view перед переходом
+        const currentView = getCurrentView();
+        if (currentView && currentView !== viewName) {
+            if (currentView === 'products' && currentProductCategory) {
+                saveScrollPosition(currentView, currentProductCategory);
+            } else {
+                saveScrollPosition(currentView);
+            }
+        }
 
         // Hide all views first
         if (welcomeContainer) welcomeContainer.classList.add('hidden');
@@ -1950,8 +2047,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (Telegram.WebApp.MainButton) {
                         updateMainButtonCartInfo();
                     }
-                    // Scroll to top of the page when categories view is displayed
-                    scrollToTop();
+                    // Восстанавливаем позицию скролла или скроллим наверх
+                    setTimeout(() => {
+                        restoreScrollPosition('categories');
+                    }, 100);
                     break;
                 case 'products':
                     if (mainPageContainer) {
@@ -1973,8 +2072,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (Telegram.WebApp.MainButton) {
                         updateMainButtonCartInfo();
                     }
-                    // Scroll to top of the page when products view is displayed
-                    scrollToTop();
+                    // Восстанавливаем позицию скролла или скроллим наверх
+                    setTimeout(() => {
+                        if (categoryKey) {
+                            restoreScrollPosition('products', categoryKey);
+                        } else {
+                            scrollToTop();
+                        }
+                    }, 100);
                     break;
                 case 'product':
                     if (productScreen) productScreen.classList.remove('hidden');
@@ -1996,10 +2101,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     Telegram.WebApp.MainButton.hide();
                     // Clear all form errors when switching to cart
                     clearAllErrors();
-                    // Scroll to top of the page when cart view is displayed
+                    // Восстанавливаем позицию скролла или скроллим наверх
                     // Add delay to ensure view is fully rendered before scrolling
                     setTimeout(() => {
-                        scrollToTop();
+                        restoreScrollPosition('cart');
                     }, 150);
                     break;
                 case 'checkout':
@@ -3644,6 +3749,9 @@ function addErrorClearingListeners() {
 
         // Сохраняем текущую категорию для возврата
         currentProductCategory = categoryKey;
+        
+        // Сохраняем позицию скролла перед переходом к продукту
+        saveScrollPosition('products', categoryKey);
 
         const screenBody = document.getElementById('product-screen-body');
         if (!screenBody) {
