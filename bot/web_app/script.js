@@ -1899,8 +1899,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         try {
             const scrollKey = categoryKey ? `${viewName}_${categoryKey}` : viewName;
+            
+            // Получаем позицию скролла разными способами
+            const pageYOffset = window.pageYOffset;
+            const documentElementScrollTop = document.documentElement.scrollTop;
+            const bodyScrollTop = document.body.scrollTop;
+            
+            // Проверяем скролл контейнеров
+            const productsContainer = document.getElementById('products-container');
+            const mainPageContainer = document.getElementById('main-page-container');
+            
+            console.log(`🔍 Scroll position debug for ${scrollKey}:`, {
+                pageYOffset,
+                documentElementScrollTop,
+                bodyScrollTop,
+                windowScrollY: window.scrollY,
+                documentScrollTop: document.documentElement.scrollTop,
+                productsContainerScrollTop: productsContainer ? productsContainer.scrollTop : 'N/A',
+                mainPageContainerScrollTop: mainPageContainer ? mainPageContainer.scrollTop : 'N/A'
+            });
+            
             const scrollPosition = {
-                window: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
+                window: pageYOffset || documentElementScrollTop || bodyScrollTop || 0,
                 timestamp: Date.now()
             };
             
