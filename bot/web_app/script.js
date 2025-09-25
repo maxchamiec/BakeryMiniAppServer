@@ -3713,10 +3713,7 @@ function addErrorClearingListeners() {
             // Продолжаем с пустыми данными
         }
         
-        // Add loaded class to body to show content and hide loading overlay
-        document.body.classList.add('loaded');
-        
-        // Hide loading overlay
+        // Hide loading overlay (loaded class already added in checkAllImagesLoaded)
         if (loadingOverlay) {
             loadingOverlay.classList.add('hidden');
         }
@@ -3735,27 +3732,56 @@ function addErrorClearingListeners() {
         }
     }
 
-    // Wait for background image to load
-    const img = new Image();
-            img.src = '/bot-app/images/Hleb.jpg?v=1.3.109&t=1758518052';
-    // Safety timeout in case onload never fires
+    // Wait for all critical images to load (background + welcome logo)
+    const backgroundImg = new Image();
+    const welcomeLogoImg = new Image();
+    
+    let backgroundLoaded = false;
+    let welcomeLogoLoaded = false;
+    
+    const checkAllImagesLoaded = async () => {
+        if (backgroundLoaded && welcomeLogoLoaded) {
+            console.log('All critical images loaded, proceeding to initial view');
+            // Add loaded class to body to show background
+            document.body.classList.add('loaded');
+            // Hide loading overlay and show appropriate view after a short delay
+            setTimeout(async () => {
+                await proceedToInitialView();
+            }, 400);
+        }
+    };
+    
+    // Load background image
+    backgroundImg.src = '/bot-app/images/Hleb.jpg?v=1.3.109&t=1758518052';
+    backgroundImg.onload = () => {
+        console.log('Background image loaded');
+        backgroundLoaded = true;
+        checkAllImagesLoaded();
+    };
+    backgroundImg.onerror = () => {
+        console.warn('Background image failed to load');
+        backgroundLoaded = true; // Continue anyway
+        checkAllImagesLoaded();
+    };
+    
+    // Load welcome logo
+    welcomeLogoImg.src = '/bot-app/images/logo.svg?v=1.3.109&t=1758518052';
+    welcomeLogoImg.onload = () => {
+        console.log('Welcome logo loaded');
+        welcomeLogoLoaded = true;
+        checkAllImagesLoaded();
+    };
+    welcomeLogoImg.onerror = () => {
+        console.warn('Welcome logo failed to load');
+        welcomeLogoLoaded = true; // Continue anyway
+        checkAllImagesLoaded();
+    };
+    
+    // Safety timeout in case images never load
     const loadingSafetyTimeout = setTimeout(async () => {
         console.warn('Loading safety timeout reached. Proceeding to initial view.');
         await proceedToInitialView();
-    }, 2500);
-    img.onload = async () => {
-        clearTimeout(loadingSafetyTimeout);
-        // Hide loading overlay and show appropriate view after a short delay
-        setTimeout(async () => {
-            await proceedToInitialView();
-        }, 400);
-    };
-    
-    // Fallback in case image fails to load
-    img.onerror = async () => {
-        clearTimeout(loadingSafetyTimeout);
-        await proceedToInitialView();
-    };
+    }, 4000); // Increased timeout to 4 seconds
 
     if (Telegram.WebApp.MainButton) {
         Telegram.WebApp.MainButton.onClick(() => {
