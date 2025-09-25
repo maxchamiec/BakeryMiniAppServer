@@ -167,6 +167,9 @@ async def save_cache_to_file(products_data: List[Dict[str, Any]],
             }
         }
         
+        # Создаем директорию если она не существует
+        os.makedirs(os.path.dirname(CACHE_FILE_PATH), exist_ok=True)
+        
         # Атомарная запись через временный файл
         temp_file = f"{CACHE_FILE_PATH}.tmp"
         
