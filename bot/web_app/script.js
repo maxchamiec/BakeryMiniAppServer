@@ -2215,6 +2215,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currentView = getCurrentView();
         if (currentView === 'products') {
             displayView('categories');
+            // Восстанавливаем позицию скролла для категорий
+            setTimeout(() => restoreScrollPosition('categories'), 100);
         } else if (currentView === 'product') {
             // Проверяем источник навигации для правильного возврата
             if (navigationSource === 'cart') {
@@ -2470,6 +2472,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 `;
                             categoryCard.addEventListener('click', () => {
+                    // Сохраняем позицию скролла перед переходом к продуктам
+                    saveScrollPosition('categories');
                     displayView('products', category.key);
                     localStorage.setItem('lastProductCategory', category.key);
                 });
