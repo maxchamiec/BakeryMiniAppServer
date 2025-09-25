@@ -1049,21 +1049,27 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Равномерно распределяем контент */
     align-items: center;
     margin: 20px auto; /* Добавляем отступы для лучшего расположения */
     text-align: center; /* Центрируем текст внутри контейнера */
     flex-grow: 1; /* Позволяет welcome-container занимать доступное пространство */
     min-height: 80vh; /* anchor content to near-full height */
     padding-bottom: max(env(safe-area-inset-bottom), 20px); /* safe bottom padding */
+    position: relative; /* Для абсолютного позиционирования кнопки и контента */
 }
 
 .welcome-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1;
     justify-content: center; /* Центрируем контент по вертикали */
+    width: calc(100% - 60px); /* Ширина минус отступы слева и справа */
+    position: absolute; /* Абсолютное позиционирование */
+    top: 50%; /* Позиционируем по центру */
+    left: 30px; /* Отступ слева */
+    right: 30px; /* Отступ справа */
+    transform: translateY(-50%); /* Центрируем по вертикали */
+    box-sizing: border-box;
 }
 
 .welcome-logo {
@@ -1104,6 +1110,11 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     font-weight: bold;
     align-self: stretch; /* fill available width within container */
+    position: absolute; /* Абсолютное позиционирование */
+    bottom: 30px; /* Фиксируем кнопку внизу */
+    left: 30px; /* Отступ слева */
+    right: 30px; /* Отступ справа */
+    box-sizing: border-box;
     flex-shrink: 0; /* Не сжимаем кнопку */
 }
 
