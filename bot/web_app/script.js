@@ -2789,7 +2789,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             cartItemElement.innerHTML = `
                 <div class="cart-item-image-container" 
                      style="cursor: ${isAvailable ? 'pointer' : 'default'};" 
-                     onclick="${isAvailable ? `showProductScreenFromCart('${item.id}', '${productCategory}')` : 'return false;'}">
+                     data-product-id="${item.id}" 
+                     data-category="${productCategory}">
                     <img src="${item.image || 'images/logo.svg?v=1.3.109&t=1758518052'}" 
                          alt="${item.name}" class="cart-item-image"
                          onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.109&t=1758518052';">
@@ -2798,7 +2799,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="cart-item-details">
                     <h4 class="cart-item-name" 
                         style="cursor: ${isAvailable ? 'pointer' : 'default'};" 
-                        onclick="${isAvailable ? `showProductScreenFromCart('${item.id}', '${productCategory}')` : 'return false;'}">${item.name}</h4>
+                        data-product-id="${item.id}" 
+                        data-category="${productCategory}">${item.name}</h4>
                     <p class="cart-item-price">
                         <span class="price-per-unit">${item.price} р. за шт.</span>
                         <span class="cart-item-total">${itemTotal.toFixed(2)} р.</span>
@@ -2827,6 +2829,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </div>
             `;
+            
+            // Добавляем обработчики событий для кликов на продукты из корзины
+            if (isAvailable) {
+                const imageContainer = cartItemElement.querySelector('.cart-item-image-container');
+                const productName = cartItemElement.querySelector('.cart-item-name');
+                
+                if (imageContainer) {
+                    imageContainer.addEventListener('click', async () => {
+                        await showProductScreenFromCart(item.id, productCategory);
+                    });
+                }
+                
+                if (productName) {
+                    productName.addEventListener('click', async () => {
+                        await showProductScreenFromCart(item.id, productCategory);
+                    });
+                }
+            }
+            
             if (cartItemsList) cartItemsList.appendChild(cartItemElement);
         });
 
