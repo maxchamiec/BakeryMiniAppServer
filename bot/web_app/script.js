@@ -1829,7 +1829,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     function scrollToTop() {
         // Не скроллим наверх если идет восстановление позиции
         if (isRestoringScroll) {
-            console.log('🚫 Skipping scrollToTop - restoring scroll position');
             return;
         }
         
@@ -1912,15 +1911,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const productsContainer = document.getElementById('products-container');
             const mainPageContainer = document.getElementById('main-page-container');
             
-            console.log(`🔍 Scroll position debug for ${scrollKey}:`, {
-                pageYOffset,
-                documentElementScrollTop,
-                bodyScrollTop,
-                windowScrollY: window.scrollY,
-                documentScrollTop: document.documentElement.scrollTop,
-                productsContainerScrollTop: productsContainer ? productsContainer.scrollTop : 'N/A',
-                mainPageContainerScrollTop: mainPageContainer ? mainPageContainer.scrollTop : 'N/A'
-            });
             
             // Определяем, где происходит скролл
             let actualScrollPosition = 0;
@@ -1939,7 +1929,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
             
             scrollPositions[scrollKey] = scrollPosition;
-            console.log(`💾 Saved scroll position for ${scrollKey}: ${scrollPosition.window}`);
         } catch (error) {
             console.error('❌ Error saving scroll position:', error);
         }
@@ -1973,7 +1962,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const targetPosition = savedPosition.window;
             
             // Плавная прокрутка к сохраненной позиции
-            console.log(`🔄 Restoring scroll to position: ${targetPosition}`);
             
             // Восстанавливаем скролл в правильном контейнере
             const mainPageContainer = document.getElementById('main-page-container');
@@ -2218,15 +2206,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayView('categories');
         } else if (currentView === 'product') {
             // Проверяем источник навигации для правильного возврата
-            console.log('🔙 Back button pressed, navigationSource:', navigationSource);
             if (navigationSource === 'cart') {
                 // Возвращаемся в корзину
-                console.log('🛒 Returning to cart');
                 displayView('cart');
                 navigationSource = null; // Сбрасываем источник
             } else {
                 // Возвращаемся к списку продуктов в той же категории
-                console.log('📂 Returning to category:', currentProductCategory);
                 if (currentProductCategory) {
                     displayView('products', currentProductCategory);
                 } else {
@@ -3835,7 +3820,6 @@ function addErrorClearingListeners() {
     async function showProductScreenFromCart(productId, categoryKey) {
         // Сохраняем источник навигации
         navigationSource = 'cart';
-        console.log('🛒 Navigating from cart to product:', productId);
         await showProductScreen(productId, categoryKey);
     }
 
@@ -3843,7 +3827,6 @@ function addErrorClearingListeners() {
     async function showProductScreenFromCategory(productId, categoryKey) {
         // Сохраняем источник навигации
         navigationSource = 'categories';
-        console.log('📂 Navigating from category to product:', productId);
         await showProductScreen(productId, categoryKey);
     }
 
