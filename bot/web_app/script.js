@@ -1824,6 +1824,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Helper function to ensure screen scrolls to top
     function scrollToTop() {
+        // Не скроллим наверх если идет восстановление позиции
+        if (isRestoringScroll) {
+            console.log('🚫 Skipping scrollToTop - restoring scroll position');
+            return;
+        }
+        
         // Multiple methods to ensure scroll to top works in all contexts
         try {
             // Method 1: Standard scrollTo
@@ -1899,6 +1905,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
             
             scrollPositions[scrollKey] = scrollPosition;
+            console.log(`💾 Saved scroll position for ${scrollKey}: ${scrollPosition.window}`);
         } catch (error) {
             console.error('❌ Error saving scroll position:', error);
         }
@@ -1932,6 +1939,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const targetPosition = savedPosition.window;
             
             // Плавная прокрутка к сохраненной позиции
+            console.log(`🔄 Restoring scroll to position: ${targetPosition}`);
             if (smooth) {
                 window.scrollTo({
                     top: targetPosition,
@@ -2050,7 +2058,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Восстанавливаем позицию скролла или скроллим наверх
                     setTimeout(() => {
                         restoreScrollPosition('categories');
-                    }, 100);
+                    }, 200);
                     break;
                 case 'products':
                     if (mainPageContainer) {
@@ -2079,12 +2087,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         } else {
                             scrollToTop();
                         }
-                    }, 100);
+                    }, 200);
                     break;
                 case 'product':
                     if (productScreen) productScreen.classList.remove('hidden');
                     Telegram.WebApp.MainButton.hide();
-                    // Scroll to top of the page when product view is displayed
+                    // Product view always starts from top
                     scrollToTop();
                     break;
                 case 'cart':
