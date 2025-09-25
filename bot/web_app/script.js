@@ -2303,11 +2303,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Mark data as loaded to allow category clicks
             isDataLoading = false;
             
+            // Activate categories after data is fully loaded
+            setTimeout(() => {
+                activateCategories();
+            }, 100);
+            
             return data;
             
         } catch (error) {
             console.error('Error loading all data:', error);
             productsDataValid = false;
+            // Activate categories even if data loading failed
+            isDataLoading = false;
+            setTimeout(() => {
+                activateCategories();
+            }, 100);
             throw error;
         }
     }
@@ -2475,9 +2485,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Hide loading logo after categories are loaded
             if (loadingLogoContainer) loadingLogoContainer.classList.add('hidden');
-            
-            // Activate categories after data is loaded
-            activateCategories();
         } catch (error) {
             console.error('Ошибка при загрузке категорий:', error);
             console.error('Failed to load categories. Please try again later.');
@@ -2486,7 +2493,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Function to activate categories after data is loaded
     function activateCategories() {
+        console.log('Activating categories...');
         const categoryCards = document.querySelectorAll('.category-card');
+        console.log('Found category cards:', categoryCards.length);
         categoryCards.forEach(card => {
             card.style.opacity = '1';
             card.style.pointerEvents = 'auto';
