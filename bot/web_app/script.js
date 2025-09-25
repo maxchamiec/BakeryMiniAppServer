@@ -2516,28 +2516,48 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const products = productsData[categoryKey];
         
-        // Update category title - используем информацию из API для названия, но SVG иконки из статического мапа
-        if (mainCategoryTitle) {
-            const apiCategoryInfo = productsData[`${categoryKey}_info`];
-            const staticCategoryInfo = CATEGORY_DISPLAY_MAP[categoryKey];
+        // Update category title and header image - используем информацию из API для названия, но изображения продуктов из category-card-item
+        const apiCategoryInfo = productsData[`${categoryKey}_info`];
+        const staticCategoryInfo = CATEGORY_DISPLAY_MAP[categoryKey];
+        
+        if (apiCategoryInfo || staticCategoryInfo) {
+            const categoryName = apiCategoryInfo?.name || staticCategoryInfo?.name || 'Продукты';
             
-            if (apiCategoryInfo || staticCategoryInfo) {
-                const categoryName = apiCategoryInfo?.name || staticCategoryInfo?.name || 'Продукты';
-                
-                // Используем SVG иконку из статического мапа, если она есть
+            // Update main category title (MODIFIED: without icons, text only)
+            if (mainCategoryTitle) {
                 if (staticCategoryInfo && staticCategoryInfo.image) {
-                    // Create icon + title container
+                    // Create title container without icon
                     mainCategoryTitle.innerHTML = `
                         <div class="category-title-with-icon">
-                            <img src="${staticCategoryInfo.image}" alt="${categoryName}" class="category-icon" onerror="this.style.display='none';">
                             <span>${categoryName}</span>
                         </div>
                     `;
                 } else {
                     mainCategoryTitle.textContent = categoryName;
                 }
-            } else {
+            }
+            
+            // Update category header image using product image (same as category-card-item)
+            const categoryHeaderImage = document.getElementById('category-header-image');
+            const categoryHeaderTitle = document.getElementById('category-header-title');
+            
+            if (categoryHeaderImage && productsData[categoryKey] && productsData[categoryKey].length > 0) {
+                // Use first product image, same logic as category-card-item
+                const categoryImageUrl = productsData[categoryKey][0].image;
+                categoryHeaderImage.src = categoryImageUrl;
+                categoryHeaderImage.alt = categoryName;
+            }
+            
+            if (categoryHeaderTitle) {
+                categoryHeaderTitle.textContent = categoryName;
+            }
+        } else {
+            if (mainCategoryTitle) {
                 mainCategoryTitle.textContent = 'Продукты';
+            }
+            const categoryHeaderTitle = document.getElementById('category-header-title');
+            if (categoryHeaderTitle) {
+                categoryHeaderTitle.textContent = 'Продукты';
             }
         }
 
