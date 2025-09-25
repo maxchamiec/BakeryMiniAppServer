@@ -2516,26 +2516,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const products = productsData[categoryKey];
         
-        // Update category title and header image - используем информацию из API для названия, но изображения продуктов из category-card-item
+        // Update category header image and title - используем информацию из API для названия, но изображения продуктов из category-card-item
         const apiCategoryInfo = productsData[`${categoryKey}_info`];
         const staticCategoryInfo = CATEGORY_DISPLAY_MAP[categoryKey];
         
         if (apiCategoryInfo || staticCategoryInfo) {
             const categoryName = apiCategoryInfo?.name || staticCategoryInfo?.name || 'Продукты';
-            
-            // Update main category title (MODIFIED: without icons, text only)
-            if (mainCategoryTitle) {
-                if (staticCategoryInfo && staticCategoryInfo.image) {
-                    // Create title container without icon
-                    mainCategoryTitle.innerHTML = `
-                        <div class="category-title-with-icon">
-                            <span>${categoryName}</span>
-                        </div>
-                    `;
-                } else {
-                    mainCategoryTitle.textContent = categoryName;
-                }
-            }
             
             // Update category header image using product image (same as category-card-item)
             const categoryHeaderImage = document.getElementById('category-header-image');
@@ -2552,9 +2538,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 categoryHeaderTitle.textContent = categoryName;
             }
         } else {
-            if (mainCategoryTitle) {
-                mainCategoryTitle.textContent = 'Продукты';
-            }
             const categoryHeaderTitle = document.getElementById('category-header-title');
             if (categoryHeaderTitle) {
                 categoryHeaderTitle.textContent = 'Продукты';
