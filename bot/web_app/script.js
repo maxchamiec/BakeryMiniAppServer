@@ -1526,6 +1526,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ===== SCROLL POSITION MANAGEMENT =====
     let scrollPositions = {}; // Хранение позиций скролла для каждого view
     let isRestoringScroll = false; // Флаг для предотвращения конфликтов при восстановлении скролла
+    
+    // ===== NAVIGATION SOURCE TRACKING =====
+    let navigationSource = null; // Отслеживание источника навигации ('cart' или 'categories')
 
     const CATEGORY_DISPLAY_MAP = {
         "category_16": { name: "Ремесленный хлеб", icon: "images/bread1.svg?v=1.3.109&t=1758518052", image: "images/bread1.svg?v=1.3.109&t=1758518052" },
@@ -2214,11 +2217,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentView === 'products') {
             displayView('categories');
         } else if (currentView === 'product') {
-            // Возвращаемся к списку продуктов в той же категории
-            if (currentProductCategory) {
-                displayView('products', currentProductCategory);
+            // Проверяем источник навигации для правильного возврата
+            if (navigationSource === 'cart') {
+                // Возвращаемся в корзину
+                displayView('cart');
+                navigationSource = null; // Сбрасываем источник
             } else {
-                displayView('categories');
+                // Возвращаемся к списку продуктов в той же категории
+                if (currentProductCategory) {
+                    displayView('products', currentProductCategory);
+                } else {
+                    displayView('categories');
+                }
             }
         } else if (currentView === 'cart') {
             const lastProductCategory = localStorage.getItem('lastProductCategory');
@@ -2776,7 +2786,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             cartItemElement.innerHTML = `
                 <div class="cart-item-image-container" 
                      style="cursor: ${isAvailable ? 'pointer' : 'default'};" 
-                     onclick="${isAvailable ? `showProductScreen('${item.id}', '${productCategory}')` : 'return false;'}">
+                     onclick="${isAvailable ? `showProductScreenFromCart('${item.id}', '${productCategory}')` : 'return false;'}">
                     <img src="${item.image || 'images/logo.svg?v=1.3.109&t=1758518052'}" 
                          alt="${item.name}" class="cart-item-image"
                          onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.109&t=1758518052';">
@@ -2785,7 +2795,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="cart-item-details">
                     <h4 class="cart-item-name" 
                         style="cursor: ${isAvailable ? 'pointer' : 'default'};" 
-                        onclick="${isAvailable ? `showProductScreen('${item.id}', '${productCategory}')` : 'return false;'}">${item.name}</h4>
+                        onclick="${isAvailable ? `showProductScreenFromCart('${item.id}', '${productCategory}')` : 'return false;'}">${item.name}</h4>
                     <p class="cart-item-price">
                         <span class="price-per-unit">${item.price} р. за шт.</span>
                         <span class="cart-item-total">${itemTotal.toFixed(2)} р.</span>
@@ -3797,6 +3807,13 @@ function addErrorClearingListeners() {
 
     // Cart rendering is now initialized earlier after products data is loaded
 
+    // Функция для показа экрана с информацией о продукте из корзины
+    async function showProductScreenFromCart(productId, categoryKey) {
+        // Сохраняем источник навигации
+        navigationSource = 'cart';
+        await showProductScreen(productId, categoryKey);
+    }
+
     // Функция для показа экрана с информацией о продукте
     async function showProductScreen(productId, categoryKey) {
         let product = null;
@@ -3814,6 +3831,11 @@ function addErrorClearingListeners() {
 
         // Сохраняем текущую категорию для возврата
         currentProductCategory = categoryKey;
+        
+        // Если это не переход из корзины, сбрасываем источник навигации
+        if (navigationSource !== 'cart') {
+            navigationSource = 'categories';
+        }
 
         const screenBody = document.getElementById('product-screen-body');
         if (!screenBody) {
