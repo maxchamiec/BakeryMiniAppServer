@@ -1523,6 +1523,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let previousProductsData = null; // Для сравнения данных продуктов в auto-refresh
     let previousCategoriesData = null; // Для сравнения данных категорий в auto-refresh
     let isDataLoading = true; // Флаг для предотвращения кликов во время загрузки данных
+    let isInitialViewProceeded = false; // Флаг для предотвращения повторного вызова proceedToInitialView
     
     // ===== SCROLL POSITION MANAGEMENT =====
     let scrollPositions = {}; // Хранение позиций скролла для каждого view
@@ -2118,6 +2119,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (productListElement) {
                         productListElement.innerHTML = '';
                     }
+                    
+                    // Показываем экран загрузки и ждем данные
+                    if (isDataLoading || !productsData[categoryKey] || productsData[categoryKey].length === 0) {
+                        console.log('Products data not ready, showing loading screen and waiting...');
+                        // Показываем экран загрузки и ждем
+                        showProductsLoadingScreen(categoryKey);
+                        return;
+                    }
+                    
                     loadProducts(categoryKey);
                     // Show basket button for products view
                     if (Telegram.WebApp.MainButton) {
@@ -2460,11 +2470,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 `;
                             categoryCard.addEventListener('click', () => {
-                    // Проверяем, загружены ли данные
-                    if (isDataLoading) {
-                        console.warn('Data is still loading, please wait...');
-                        return;
-                    }
                     displayView('products', category.key);
                     localStorage.setItem('lastProductCategory', category.key);
                 });
@@ -2498,6 +2503,99 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.style.opacity = '1';
             card.style.pointerEvents = 'auto';
         });
+    }
+
+    // Function to show loading screen for products and wait for data
+    async function showProductsLoadingScreen(categoryKey) {
+        console.log('Showing products loading screen for category:', categoryKey);
+        
+        // Показываем индикатор загрузки
+        if (mainCategoryTitle) {
+            mainCategoryTitle.textContent = 'Загрузка товаров...';
+        }
+        
+        // Ждем, пока данные загрузятся
+        const maxWaitTime = 10000; // 10 секунд максимум
+        const checkInterval = 100; // Проверяем каждые 100мс
+        let waitedTime = 0;
+        
+        const checkData = () => {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    waitedTime += checkInterval;
+                    
+                    // Если данные загружены
+                    if (!isDataLoading && productsData[categoryKey] && productsData[categoryKey].length > 0) {
+                        clearInterval(interval);
+                        console.log('Products data loaded, proceeding to load products');
+                        resolve(true);
+                        return;
+                    }
+                    
+                    // Если превышено время ожидания
+                    if (waitedTime >= maxWaitTime) {
+                        clearInterval(interval);
+                        console.warn('Timeout waiting for products data');
+                        resolve(false);
+                        return;
+                    }
+                }, checkInterval);
+            });
+        };
+        
+        const dataReady = await checkData();
+        
+        if (dataReady) {
+            // Данные загружены, показываем продукты
+            loadProducts(categoryKey);
+        } else {
+            // Таймаут, показываем ошибку с кнопками
+            showProductsErrorScreen(categoryKey);
+        }
+    }
+
+    // Function to show error screen for products with user options
+    function showProductsErrorScreen(categoryKey) {
+        console.log('Showing products error screen for category:', categoryKey);
+        
+        // Показываем сообщение об ошибке
+        if (mainCategoryTitle) {
+            mainCategoryTitle.textContent = 'Ошибка загрузки товаров';
+        }
+        
+        // Очищаем список продуктов
+        if (productListElement) {
+            productListElement.innerHTML = `
+                <div class="products-error-container">
+                    <div class="error-message">
+                        <h3>Не удалось загрузить товары</h3>
+                        <p>Попробуйте обновить страницу или вернуться к меню</p>
+                    </div>
+                    <div class="error-actions">
+                        <button id="retry-products-btn" class="retry-btn">Попробовать снова</button>
+                        <button id="back-to-categories-btn" class="back-btn">Вернуться к меню</button>
+                    </div>
+                </div>
+            `;
+            
+            // Добавляем обработчики для кнопок
+            const retryBtn = document.getElementById('retry-products-btn');
+            const backBtn = document.getElementById('back-to-categories-btn');
+            
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => {
+                    console.log('User clicked retry, attempting to load products again');
+                    showProductsLoadingScreen(categoryKey);
+                });
+            }
+            
+            if (backBtn) {
+                backBtn.addEventListener('click', () => {
+                    console.log('User clicked back to categories');
+                    displayView('categories');
+                });
+            }
+        }
     }
 
     async function loadProducts(categoryKey) {
@@ -3746,6 +3844,13 @@ function addErrorClearingListeners() {
 
     // Helper to proceed to initial view and hide loading overlay
     async function proceedToInitialView() {
+        // Предотвращаем повторный вызов
+        if (isInitialViewProceeded) {
+            console.log('Initial view already proceeded, skipping...');
+            return;
+        }
+        isInitialViewProceeded = true;
+        
         try {
             // Загружаем ВСЕ данные сразу
             console.log('Loading all data for initial view...');
@@ -3835,14 +3940,9 @@ function addErrorClearingListeners() {
 
     // Инициализация кнопок, которые всегда присутствуют в DOM
     if (continueShoppingButton) {
-        continueShoppingButton.addEventListener('click', async () => {
+        continueShoppingButton.addEventListener('click', () => {
             // Всегда ведем на страницу "Наше меню" (категории)
-            // Убеждаемся, что данные загружены
-            if (isDataLoading) {
-                console.log('Data still loading, waiting...');
-                return;
-            }
-            await displayView('categories');
+            displayView('categories');
         });
     } else {
         console.error('Элемент с ID "continue-shopping-button" не найден в DOM. Невозможно прикрепить слушатель кликов.');
@@ -3881,13 +3981,8 @@ function addErrorClearingListeners() {
     // Инициализация кнопки "Наше меню" для пустой корзины
     const emptyCartMenuButton = document.getElementById('empty-cart-menu-button');
     if (emptyCartMenuButton) {
-        emptyCartMenuButton.addEventListener('click', async () => {
-            // Убеждаемся, что данные загружены
-            if (isDataLoading) {
-                console.log('Data still loading, waiting...');
-                return;
-            }
-            await displayView('categories');
+        emptyCartMenuButton.addEventListener('click', () => {
+            displayView('categories');
         });
     } else {
         console.error('Элемент с ID "empty-cart-menu-button" не найден в DOM. Невозможно прикрепить слушатель кликов.');
