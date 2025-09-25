@@ -2111,9 +2111,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                     if (productsContainer) productsContainer.classList.remove('hidden');
                     if (mainCategoryTitle) {
-                        mainCategoryTitle.classList.remove('hidden');
-                        // Show loading state immediately with same styles as category title
-                        mainCategoryTitle.textContent = 'Загрузка...';
+                        mainCategoryTitle.classList.add('hidden');
+                        // Hide main category title on products screen - use category-header-title instead
                     }
                     // Clear product list to hide old cards
                     if (productListElement) {
