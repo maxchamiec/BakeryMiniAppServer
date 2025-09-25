@@ -2303,11 +2303,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Mark data as loaded to allow category clicks
             isDataLoading = false;
             
-            // Activate categories after data is fully loaded
-            setTimeout(() => {
-                activateCategories();
-            }, 100);
-            
             return data;
             
         } catch (error) {
@@ -2485,6 +2480,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Hide loading logo after categories are loaded
             if (loadingLogoContainer) loadingLogoContainer.classList.add('hidden');
+            
+            // Activate categories after they are created and data is loaded
+            activateCategories();
         } catch (error) {
             console.error('Ошибка при загрузке категорий:', error);
             console.error('Failed to load categories. Please try again later.');
@@ -3760,7 +3758,7 @@ function addErrorClearingListeners() {
             loadingOverlay.classList.add('hidden');
         }
         
-        // Show appropriate view
+        // Show appropriate view AFTER data is loaded
         if (initialView === 'checkout') {
             await displayView('checkout');
         } else if (initialView === 'cart' || initialCategory === 'cart') {
@@ -3834,9 +3832,14 @@ function addErrorClearingListeners() {
 
     // Инициализация кнопок, которые всегда присутствуют в DOM
     if (continueShoppingButton) {
-        continueShoppingButton.addEventListener('click', () => {
+        continueShoppingButton.addEventListener('click', async () => {
             // Всегда ведем на страницу "Наше меню" (категории)
-            displayView('categories');
+            // Убеждаемся, что данные загружены
+            if (isDataLoading) {
+                console.log('Data still loading, waiting...');
+                return;
+            }
+            await displayView('categories');
         });
     } else {
         console.error('Элемент с ID "continue-shopping-button" не найден в DOM. Невозможно прикрепить слушатель кликов.');
@@ -3875,8 +3878,13 @@ function addErrorClearingListeners() {
     // Инициализация кнопки "Наше меню" для пустой корзины
     const emptyCartMenuButton = document.getElementById('empty-cart-menu-button');
     if (emptyCartMenuButton) {
-        emptyCartMenuButton.addEventListener('click', () => {
-            displayView('categories');
+        emptyCartMenuButton.addEventListener('click', async () => {
+            // Убеждаемся, что данные загружены
+            if (isDataLoading) {
+                console.log('Data still loading, waiting...');
+                return;
+            }
+            await displayView('categories');
         });
     } else {
         console.error('Элемент с ID "empty-cart-menu-button" не найден в DOM. Невозможно прикрепить слушатель кликов.');
