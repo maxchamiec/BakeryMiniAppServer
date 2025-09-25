@@ -19,6 +19,7 @@ async def security_headers_middleware(request: Request, handler: Callable[[Reque
     # Content Security Policy - allows Telegram WebApp functionality, Google Fonts, and Swiper CDN
     csp_policy = (
         "default-src 'self' https://telegram.org; "
+        "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://cdn.jsdelivr.net; "
         "style-src 'self' 'unsafe-inline' https://telegram.org https://fonts.googleapis.com https://cdn.jsdelivr.net; "
         "font-src 'self' data: https://telegram.org https://fonts.gstatic.com https://cdn.jsdelivr.net; "
@@ -55,7 +56,7 @@ async def security_headers_middleware(request: Request, handler: Callable[[Reque
     # Security headers
     response.headers.update({
         # Prevent clickjacking
-        'X-Frame-Options': 'DENY',
+        #'X-Frame-Options': 'DENY',
         
         # Prevent MIME type sniffing
         'X-Content-Type-Options': 'nosniff',
