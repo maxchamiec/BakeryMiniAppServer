@@ -138,15 +138,16 @@ button, a, input, select, textarea, .clickable-image, .details-text {
 
 /* Category image header for products screen */
 .category-image-header {
-    position: relative;
+    position: fixed;
     width: 100vw; /* Full viewport width */
-    height: 200px;
+    height: 130px;
     margin-left: calc(-50vw + 50%); /* Center the full-width element */
     margin-right: calc(-50vw + 50%);
     margin-top: -76px; /* Move further to top edge to cover main-page-logo-container */
     overflow: hidden;
     margin-bottom: 0px;
     z-index: 10; /* Ensure it's above main-page-logo-container */
+    border-bottom: 1px solid #ffffff; /* White border bottom */
 }
 
 .category-header-img {
