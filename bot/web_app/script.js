@@ -1919,8 +1919,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 mainPageContainerScrollTop: mainPageContainer ? mainPageContainer.scrollTop : 'N/A'
             });
             
+            // Определяем, где происходит скролл
+            let actualScrollPosition = 0;
+            if (mainPageContainer && mainPageContainer.scrollTop > 0) {
+                actualScrollPosition = mainPageContainer.scrollTop;
+            } else if (productsContainer && productsContainer.scrollTop > 0) {
+                actualScrollPosition = productsContainer.scrollTop;
+            } else {
+                actualScrollPosition = pageYOffset || documentElementScrollTop || bodyScrollTop || 0;
+            }
+            
             const scrollPosition = {
-                window: pageYOffset || documentElementScrollTop || bodyScrollTop || 0,
+                window: actualScrollPosition,
+                container: mainPageContainer ? mainPageContainer.scrollTop : 0,
                 timestamp: Date.now()
             };
             
@@ -1960,13 +1971,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Плавная прокрутка к сохраненной позиции
             console.log(`🔄 Restoring scroll to position: ${targetPosition}`);
-            if (smooth) {
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
+            
+            // Восстанавливаем скролл в правильном контейнере
+            const mainPageContainer = document.getElementById('main-page-container');
+            const productsContainer = document.getElementById('products-container');
+            
+            if (mainPageContainer && savedPosition.container > 0) {
+                // Скролл происходит в mainPageContainer
+                if (smooth) {
+                    mainPageContainer.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    mainPageContainer.scrollTop = targetPosition;
+                }
+            } else if (productsContainer) {
+                // Скролл происходит в productsContainer
+                if (smooth) {
+                    productsContainer.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    productsContainer.scrollTop = targetPosition;
+                }
             } else {
-                window.scrollTo(0, targetPosition);
+                // Скролл происходит в window
+                if (smooth) {
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    window.scrollTo(0, targetPosition);
+                }
             }
             
             // Сбрасываем флаг после завершения анимации
