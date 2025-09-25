@@ -141,6 +141,7 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     position: fixed;
     width: 100vw; /* Full viewport width */
     height: 130px;
+    right: 0px;
     margin-left: calc(-50vw + 50%); /* Center the full-width element */
     margin-right: calc(-50vw + 50%);
     margin-top: -76px; /* Move further to top edge to cover main-page-logo-container */
@@ -3699,4 +3700,9 @@ h1, .category-title, .category-title-with-icon {
         width: 15px;
         height: 15px;
     }
+}
+
+/* Product list spacing */
+#product-list {
+    margin-top: 48px;
 }
