@@ -2058,7 +2058,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Mobile-optimized view switching
-        const showView = () => {
+        const showView = async () => {
             switch (viewName) {
                 case 'loading':
                     const loadingOverlay = document.getElementById('loading-overlay');
