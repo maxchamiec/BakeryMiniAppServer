@@ -133,18 +133,21 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     display: grid;
     grid-template-columns: 1fr; /* Одна колонка на мобильных */
     gap: 20px;
-    padding-bottom: 20px; /* Отступ снизу для прокрутки */
+    padding-bottom: 40px;
+    margin-top: 30px; /* Отступ снизу для прокрутки */
 }
 
 /* Category image header for products screen */
 .category-image-header {
     position: fixed;
     width: 100vw; /* Full viewport width */
-    height: 130px;
+    height: 140px;
+    top: 0px;
+    left: 0px;
     right: 0px;
     margin-left: calc(-50vw + 50%); /* Center the full-width element */
     margin-right: calc(-50vw + 50%);
-    margin-top: -76px; /* Move further to top edge to cover main-page-logo-container */
+    margin-top: -90px; /* Move further to top edge to cover main-page-logo-container */
     overflow: hidden;
     margin-bottom: 0px;
     z-index: 10; /* Ensure it's above main-page-logo-container */
@@ -3703,6 +3706,6 @@ h1, .category-title, .category-title-with-icon {
 }
 
 /* Product list spacing */
-#product-list {
+/* #product-list {
     margin-top: 68px;
 }
