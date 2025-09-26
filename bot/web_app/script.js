@@ -2682,9 +2682,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="product-controls">
                             <div class="product-price">${parseFloat(product.price).toFixed(2)} р.</div>
                             <div class="quantity-controls">
-                                <button data-product-id="${product.id}" data-action="decrease">-</button>
+                                <button data-product-id="${product.id}" data-action="decrease">
+                                    <img src="/bot-app/images/minus.svg" alt="-" class="quantity-icon">
+                                </button>
                                 <span class="quantity-display" id="qty-${product.id}">${quantityInCart}</span>
-                                <button data-product-id="${product.id}" data-action="increase">+</button>
+                                <button data-product-id="${product.id}" data-action="increase">
+                                    <img src="/bot-app/images/plus.svg" alt="+" class="quantity-icon">
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2939,7 +2943,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <div class="changer count_minus cur-p pos-r w-200 w-xs-300 h-200 h-xs-300 br-50p d-flex align-items-center justify-content-center decrease-cart-quantity" 
                                  data-product-id="${item.id}" 
                                  style="background-color: #d7d7d7; ${!isAvailable ? 'opacity: 0.5; pointer-events: none;' : ''}">
-                                <span class="fz-150 fw-400 fc-1 mb-25">-</span>
+                                <img src="/bot-app/images/minus.svg" alt="-" class="quantity-icon">
                             </div>
                             <input type="number" name="count" value="${item.quantity}" min="1" readonly="" 
                                    class="count mssaleprice-count cur-p form-control ptb-25 fz-175 mlr-50 text-center mx-w-300 cart-item-quantity" 
@@ -2947,7 +2951,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <div class="changer count_plus cur-p pos-r w-200 w-xs-300 h-200 h-xs-300 br-50p d-flex align-items-center justify-content-center increase-cart-quantity" 
                                  data-product-id="${item.id}" 
                                  style="background-color: #d7d7d7; ${!isAvailable ? 'opacity: 0.5; pointer-events: none;' : ''}">
-                                <span class="fz-150 fw-400 fc-1">+</span>
+                                <img src="/bot-app/images/plus.svg" alt="+" class="quantity-icon">
                             </div>
                         </div>
                         <button class="btn--noborder bgc-t fc-1 h-fc h-fc-acc-1 pr-0 remove-btn" data-product-id="${item.id}" type="button">
@@ -4062,11 +4066,11 @@ function addErrorClearingListeners() {
             <!-- Кнопки управления количеством -->
             <div class="input-group input-group-sm d-flex align-items-center justify-content-center justify-content-md-start">
                 <div class="changer count_minus cur-p pos-r w-200 w-xs-300 h-200 h-xs-300 br-50p d-flex align-items-center justify-content-center screen-decrease-quantity" data-product-id="${product.id}" style="background-color: #d7d7d7;">
-                    <span class="fz-150 fw-400 fc-1 mb-25">-</span>
+                    <img src="/bot-app/images/minus.svg" alt="-" class="quantity-icon">
                 </div>
                 <input type="number" name="count" value="0" min="0" readonly="" class="count mssaleprice-count cur-p form-control ptb-25 fz-175 mlr-50 text-center mx-w-300 product-screen-quantity-display" id="screen-quantity-${product.id}" style="border: none !important; background-color:transparent !important;">
                 <div class="changer count_plus cur-p pos-r w-200 w-xs-300 h-200 h-xs-300 br-50p d-flex align-items-center justify-content-center screen-increase-quantity" data-product-id="${product.id}" style="background-color: #d7d7d7;">
-                    <span class="fz-150 fw-400 fc-1">+</span>
+                    <img src="/bot-app/images/plus.svg" alt="+" class="quantity-icon">
                 </div>
             </div>
 
