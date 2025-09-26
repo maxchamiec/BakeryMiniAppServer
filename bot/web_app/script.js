@@ -1524,6 +1524,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let previousCategoriesData = null; // Для сравнения данных категорий в auto-refresh
     let isDataLoading = true; // Флаг для предотвращения кликов во время загрузки данных
     let isInitialViewProceeded = false; // Флаг для предотвращения повторного вызова proceedToInitialView
+    let imagesLoaded = false; // Флаг для отслеживания загрузки изображений
+    let dataLoaded = false; // Флаг для отслеживания загрузки данных
     
     // ===== SCROLL POSITION MANAGEMENT =====
     let scrollPositions = {}; // Хранение позиций скролла для каждого view
@@ -2313,6 +2315,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Mark data as loaded to allow category clicks
             isDataLoading = false;
+            dataLoaded = true;
+            
+            // Check if we can hide loading screen now
+            hideLoadingWhenReady();
             
             return data;
             
@@ -2321,6 +2327,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             productsDataValid = false;
             // Activate categories even if data loading failed
             isDataLoading = false;
+            dataLoaded = true; // Mark as loaded even if failed to continue
+            hideLoadingWhenReady();
             setTimeout(() => {
                 activateCategories();
             }, 100);
@@ -3849,6 +3857,32 @@ function addErrorClearingListeners() {
         Telegram.WebApp.BackButton.hide();
     }
 
+    // Единая функция для скрытия экрана загрузки когда все готово
+    function hideLoadingScreenWhenReady() {
+        if (imagesLoaded && dataLoaded && !isInitialViewProceeded) {
+            console.log('Both images and data loaded, hiding loading screen and showing initial view');
+            isInitialViewProceeded = true;
+            
+            // Hide loading overlay
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+            }
+            
+            // Show appropriate view
+            if (initialView === 'checkout') {
+                displayView('checkout');
+            } else if (initialView === 'cart' || initialCategory === 'cart') {
+                displayView('cart');
+            } else if (initialView === 'categories') {
+                displayView('categories');
+            } else if (initialCategory) {
+                displayView('products', initialCategory);
+            } else {
+                displayView('welcome');
+            }
+        }
+    }
+
     // Helper to proceed to initial view and hide loading overlay
     async function proceedToInitialView() {
         // Предотвращаем повторный вызов
@@ -3896,13 +3930,12 @@ function addErrorClearingListeners() {
     
     const checkAllImagesLoaded = async () => {
         if (backgroundLoaded && welcomeLogoLoaded) {
-            console.log('All critical images loaded, proceeding to initial view');
+            console.log('All critical images loaded');
             // Add loaded class to body to show background
             document.body.classList.add('loaded');
-            // Hide loading overlay and show appropriate view after a short delay
-            setTimeout(async () => {
-                await proceedToInitialView();
-            }, 400);
+            // Mark images as loaded and check if we can hide loading screen
+            imagesLoaded = true;
+            hideLoadingScreenWhenReady();
         }
     };
     
@@ -3934,9 +3967,12 @@ function addErrorClearingListeners() {
     
     // Safety timeout in case images never load
     const loadingSafetyTimeout = setTimeout(async () => {
-        console.warn('Loading safety timeout reached. Proceeding to initial view.');
-        await proceedToInitialView();
-    }, 4000); // Increased timeout to 4 seconds
+        console.warn('Loading safety timeout reached. Forcing initial view.');
+        // Force both flags to true to ensure loading screen is hidden
+        imagesLoaded = true;
+        dataLoaded = true;
+        hideLoadingWhenReady();
+    }, 3000); // Reduced timeout to 3 seconds
 
     if (Telegram.WebApp.MainButton) {
         Telegram.WebApp.MainButton.onClick(() => {
