@@ -2318,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             dataLoaded = true;
             
             // Check if we can hide loading screen now
-            hideLoadingWhenReady();
+            await hideLoadingScreenWhenReady();
             
             return data;
             
@@ -2328,7 +2328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Activate categories even if data loading failed
             isDataLoading = false;
             dataLoaded = true; // Mark as loaded even if failed to continue
-            hideLoadingWhenReady();
+            await hideLoadingScreenWhenReady();
             setTimeout(() => {
                 activateCategories();
             }, 100);
@@ -3858,7 +3858,20 @@ function addErrorClearingListeners() {
     }
 
     // Единая функция для скрытия экрана загрузки когда все готово
-    function hideLoadingScreenWhenReady() {
+    async function hideLoadingScreenWhenReady() {
+        // Если изображения загружены, но данные нет - загружаем данные
+        if (imagesLoaded && !dataLoaded) {
+            console.log('Images loaded, now loading data...');
+            try {
+                await fetchAllData();
+                console.log('Data loaded successfully');
+            } catch (error) {
+                console.error('Failed to load data:', error);
+                dataLoaded = true; // Продолжаем даже при ошибке
+            }
+        }
+        
+        // Если и изображения и данные загружены - скрываем экран загрузки
         if (imagesLoaded && dataLoaded && !isInitialViewProceeded) {
             console.log('Both images and data loaded, hiding loading screen and showing initial view');
             isInitialViewProceeded = true;
@@ -3935,7 +3948,7 @@ function addErrorClearingListeners() {
             document.body.classList.add('loaded');
             // Mark images as loaded and check if we can hide loading screen
             imagesLoaded = true;
-            hideLoadingScreenWhenReady();
+            await hideLoadingScreenWhenReady();
         }
     };
     
@@ -3971,7 +3984,7 @@ function addErrorClearingListeners() {
         // Force both flags to true to ensure loading screen is hidden
         imagesLoaded = true;
         dataLoaded = true;
-        hideLoadingWhenReady();
+        await hideLoadingScreenWhenReady();
     }, 3000); // Reduced timeout to 3 seconds
 
     if (Telegram.WebApp.MainButton) {
