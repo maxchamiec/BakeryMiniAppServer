@@ -133,8 +133,7 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     display: grid;
     grid-template-columns: 1fr; /* Одна колонка на мобильных */
     gap: 20px;
-    padding-bottom: 40px;
-    margin-top: 30px; /* Отступ снизу для прокрутки */
+    padding-bottom: 40px; /* Отступ снизу для прокрутки */
 }
 
 /* Category image header for products screen */
@@ -147,7 +146,7 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     right: 0px;
     margin-left: calc(-50vw + 50%); /* Center the full-width element */
     margin-right: calc(-50vw + 50%);
-    margin-top: -90px; /* Move further to top edge to cover main-page-logo-container */
+    margin-top: 0px; /* Move further to top edge to cover main-page-logo-container */
     overflow: hidden;
     margin-bottom: 0px;
     z-index: 10; /* Ensure it's above main-page-logo-container */
@@ -223,7 +222,7 @@ button, a, input, select, textarea, .clickable-image, .details-text {
 
 /* Make first product card overlap category-image-header by 1/3 of main-page-logo-container height (approx 25px) */
 .products-grid {
-    margin-top: 0px; /* Overlap by 1/3 of main-page-logo-container height */
+    margin-top: 90px; /* Overlap by 1/3 of main-page-logo-container height */
 }
 
 /* Стили для экрана ошибки продуктов */
