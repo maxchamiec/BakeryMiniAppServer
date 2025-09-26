@@ -2103,9 +2103,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (Telegram.WebApp.MainButton) {
                         updateMainButtonCartInfo();
                     }
-                    // Восстанавливаем позицию скролла или скроллим наверх
+                    // Скроллим наверх для всех переходов на categories
                     setTimeout(() => {
-                        restoreScrollPosition('categories');
+                        scrollToTop();
                     }, 200);
                     break;
                 case 'products':
@@ -2218,8 +2218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currentView = getCurrentView();
         if (currentView === 'products') {
             displayView('categories');
-            // Восстанавливаем позицию скролла для категорий
-            setTimeout(() => restoreScrollPosition('categories'), 100);
+            // Позиция скролла теперь управляется в case 'categories'
         } else if (currentView === 'product') {
             // Проверяем источник навигации для правильного возврата
             if (navigationSource === 'cart') {
