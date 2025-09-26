@@ -2086,11 +2086,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     scrollToTop();
                     break;
                 case 'categories':
+                    console.log('Displaying categories view');
                     if (mainPageContainer) {
                         mainPageContainer.classList.remove('hidden');
                         if (isAndroidDevice) mainPageContainer.style.display = 'block';
                     }
-                    if (categoriesContainer) categoriesContainer.classList.remove('hidden');
+                    if (categoriesContainer) {
+                        categoriesContainer.classList.remove('hidden');
+                        console.log('Categories container shown');
+                    } else {
+                        console.error('Categories container not found!');
+                    }
                     if (mainCategoryTitle) {
                         mainCategoryTitle.textContent = 'Наше меню';
                         mainCategoryTitle.classList.remove('hidden');
@@ -2436,13 +2442,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadCategories() {
+        console.log('loadCategories called');
         try {
             // Данные уже загружены через fetchAllData, просто проверяем их наличие
             if (!categoriesData || categoriesData.length === 0) {
+                console.error('No categories data available');
                 throw new Error('No categories data available');
             }
 
-            if (categoriesContainer) categoriesContainer.innerHTML = '';
+            console.log('Categories data available:', categoriesData.length, 'categories');
+            if (categoriesContainer) {
+                categoriesContainer.innerHTML = '';
+                console.log('Categories container cleared');
+            } else {
+                console.error('Categories container not found!');
+            }
 
             const categoriesGrid = document.createElement('div');
             categoriesGrid.className = 'categories-grid';
@@ -2492,11 +2506,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (categoriesGrid) categoriesGrid.appendChild(categoryCard);
             });
-            if (categoriesContainer) categoriesContainer.appendChild(categoriesGrid);
+            if (categoriesContainer) {
+                categoriesContainer.appendChild(categoriesGrid);
+                console.log('Categories grid appended to container');
+            } else {
+                console.error('Cannot append categories grid - container not found!');
+            }
             
             // Hide loading logo after categories are loaded
             if (loadingLogoContainer) loadingLogoContainer.classList.add('hidden');
             
+            console.log('Categories rendered, calling activateCategories');
             // Activate categories after they are created and data is loaded
             activateCategories();
         } catch (error) {
@@ -3891,15 +3911,21 @@ function addErrorClearingListeners() {
             }
             
             // Show appropriate view
+            console.log('Determining initial view:', { initialView, initialCategory });
             if (initialView === 'checkout') {
+                console.log('Showing checkout view');
                 displayView('checkout');
             } else if (initialView === 'cart' || initialCategory === 'cart') {
+                console.log('Showing cart view');
                 displayView('cart');
             } else if (initialView === 'categories') {
+                console.log('Showing categories view');
                 displayView('categories');
             } else if (initialCategory) {
+                console.log('Showing products view for category:', initialCategory);
                 displayView('products', initialCategory);
             } else {
+                console.log('Showing welcome view (default)');
                 displayView('welcome');
             }
         } else {
