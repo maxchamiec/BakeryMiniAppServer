@@ -140,7 +140,7 @@ button, a, input, select, textarea, .clickable-image, .details-text {
 .category-image-header {
     position: fixed;
     width: 100vw; /* Full viewport width */
-    height: 187px;
+    height: 117px;
     top: 0px;
     left: 0px;
     right: 0px;
