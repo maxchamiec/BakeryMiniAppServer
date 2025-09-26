@@ -3836,9 +3836,13 @@ function addErrorClearingListeners() {
 
     // Show loading overlay first - critical for preventing FOUC (Flash of Unstyled Content)
     const loadingOverlay = document.getElementById('loading-overlay');
+    console.log('Loading overlay found:', !!loadingOverlay);
     if (loadingOverlay) {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.style.display = 'flex'; // Force display
+        console.log('Loading overlay displayed');
+    } else {
+        console.error('Loading overlay not found in DOM!');
     }
 
     // Hide all content initially - CSS will handle this, but ensure it's hidden
@@ -3859,6 +3863,8 @@ function addErrorClearingListeners() {
 
     // Единая функция для скрытия экрана загрузки когда все готово
     async function hideLoadingScreenWhenReady() {
+        console.log('hideLoadingScreenWhenReady called:', { imagesLoaded, dataLoaded, isInitialViewProceeded });
+        
         // Если изображения загружены, но данные нет - загружаем данные
         if (imagesLoaded && !dataLoaded) {
             console.log('Images loaded, now loading data...');
@@ -3878,7 +3884,10 @@ function addErrorClearingListeners() {
             
             // Hide loading overlay
             if (loadingOverlay) {
+                console.log('Hiding loading overlay');
                 loadingOverlay.classList.add('hidden');
+            } else {
+                console.warn('Loading overlay not found!');
             }
             
             // Show appropriate view
@@ -3893,6 +3902,8 @@ function addErrorClearingListeners() {
             } else {
                 displayView('welcome');
             }
+        } else {
+            console.log('Not ready yet:', { imagesLoaded, dataLoaded, isInitialViewProceeded });
         }
     }
 
@@ -3942,13 +3953,17 @@ function addErrorClearingListeners() {
     let welcomeLogoLoaded = false;
     
     const checkAllImagesLoaded = async () => {
+        console.log('checkAllImagesLoaded called:', { backgroundLoaded, welcomeLogoLoaded });
         if (backgroundLoaded && welcomeLogoLoaded) {
             console.log('All critical images loaded');
             // Add loaded class to body to show background
             document.body.classList.add('loaded');
             // Mark images as loaded and check if we can hide loading screen
             imagesLoaded = true;
+            console.log('Setting imagesLoaded = true, calling hideLoadingScreenWhenReady');
             await hideLoadingScreenWhenReady();
+        } else {
+            console.log('Images not ready yet:', { backgroundLoaded, welcomeLogoLoaded });
         }
     };
     
