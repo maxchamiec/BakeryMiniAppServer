@@ -2086,23 +2086,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     scrollToTop();
                     break;
                 case 'categories':
-                    console.log('Displaying categories view');
                     if (mainPageContainer) {
                         mainPageContainer.classList.remove('hidden');
                         if (isAndroidDevice) mainPageContainer.style.display = 'block';
                     }
                     if (categoriesContainer) {
                         categoriesContainer.classList.remove('hidden');
-                        console.log('Categories container shown');
-                    } else {
-                        console.error('Categories container not found!');
                     }
                     if (mainCategoryTitle) {
                         mainCategoryTitle.textContent = 'Наше меню';
                         mainCategoryTitle.classList.remove('hidden');
                     }
                     // Load categories immediately for mobile to prevent twitching
-                    loadCategories();
+                    await loadCategories();
                     // Show basket button for categories view
                     if (Telegram.WebApp.MainButton) {
                         updateMainButtonCartInfo();
@@ -2442,20 +2438,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadCategories() {
-        console.log('loadCategories called');
         try {
             // Данные уже загружены через fetchAllData, просто проверяем их наличие
             if (!categoriesData || categoriesData.length === 0) {
-                console.error('No categories data available');
                 throw new Error('No categories data available');
             }
 
-            console.log('Categories data available:', categoriesData.length, 'categories');
             if (categoriesContainer) {
                 categoriesContainer.innerHTML = '';
-                console.log('Categories container cleared');
-            } else {
-                console.error('Categories container not found!');
             }
 
             const categoriesGrid = document.createElement('div');
@@ -2508,15 +2498,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             if (categoriesContainer) {
                 categoriesContainer.appendChild(categoriesGrid);
-                console.log('Categories grid appended to container');
-            } else {
-                console.error('Cannot append categories grid - container not found!');
             }
             
             // Hide loading logo after categories are loaded
             if (loadingLogoContainer) loadingLogoContainer.classList.add('hidden');
             
-            console.log('Categories rendered, calling activateCategories');
             // Activate categories after they are created and data is loaded
             activateCategories();
         } catch (error) {
@@ -3856,13 +3842,9 @@ function addErrorClearingListeners() {
 
     // Show loading overlay first - critical for preventing FOUC (Flash of Unstyled Content)
     const loadingOverlay = document.getElementById('loading-overlay');
-    console.log('Loading overlay found:', !!loadingOverlay);
     if (loadingOverlay) {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.style.display = 'flex'; // Force display
-        console.log('Loading overlay displayed');
-    } else {
-        console.error('Loading overlay not found in DOM!');
     }
 
     // Hide all content initially - CSS will handle this, but ensure it's hidden
@@ -3883,14 +3865,10 @@ function addErrorClearingListeners() {
 
     // Единая функция для скрытия экрана загрузки когда все готово
     async function hideLoadingScreenWhenReady() {
-        console.log('hideLoadingScreenWhenReady called:', { imagesLoaded, dataLoaded, isInitialViewProceeded });
-        
         // Если изображения загружены, но данные нет - загружаем данные
         if (imagesLoaded && !dataLoaded) {
-            console.log('Images loaded, now loading data...');
             try {
                 await fetchAllData();
-                console.log('Data loaded successfully');
             } catch (error) {
                 console.error('Failed to load data:', error);
                 dataLoaded = true; // Продолжаем даже при ошибке
@@ -3899,37 +3877,25 @@ function addErrorClearingListeners() {
         
         // Если и изображения и данные загружены - скрываем экран загрузки
         if (imagesLoaded && dataLoaded && !isInitialViewProceeded) {
-            console.log('Both images and data loaded, hiding loading screen and showing initial view');
             isInitialViewProceeded = true;
             
             // Hide loading overlay
             if (loadingOverlay) {
-                console.log('Hiding loading overlay');
                 loadingOverlay.classList.add('hidden');
-            } else {
-                console.warn('Loading overlay not found!');
             }
             
             // Show appropriate view
-            console.log('Determining initial view:', { initialView, initialCategory });
             if (initialView === 'checkout') {
-                console.log('Showing checkout view');
                 displayView('checkout');
             } else if (initialView === 'cart' || initialCategory === 'cart') {
-                console.log('Showing cart view');
                 displayView('cart');
             } else if (initialView === 'categories') {
-                console.log('Showing categories view');
                 displayView('categories');
             } else if (initialCategory) {
-                console.log('Showing products view for category:', initialCategory);
                 displayView('products', initialCategory);
             } else {
-                console.log('Showing welcome view (default)');
                 displayView('welcome');
             }
-        } else {
-            console.log('Not ready yet:', { imagesLoaded, dataLoaded, isInitialViewProceeded });
         }
     }
 
@@ -3979,17 +3945,12 @@ function addErrorClearingListeners() {
     let welcomeLogoLoaded = false;
     
     const checkAllImagesLoaded = async () => {
-        console.log('checkAllImagesLoaded called:', { backgroundLoaded, welcomeLogoLoaded });
         if (backgroundLoaded && welcomeLogoLoaded) {
-            console.log('All critical images loaded');
             // Add loaded class to body to show background
             document.body.classList.add('loaded');
             // Mark images as loaded and check if we can hide loading screen
             imagesLoaded = true;
-            console.log('Setting imagesLoaded = true, calling hideLoadingScreenWhenReady');
             await hideLoadingScreenWhenReady();
-        } else {
-            console.log('Images not ready yet:', { backgroundLoaded, welcomeLogoLoaded });
         }
     };
     
