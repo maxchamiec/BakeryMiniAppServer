@@ -746,8 +746,17 @@ async def setup_api_server():
     
 
 
-    # 5. Маршрут-заглушка для любых других путей внутри /bot-app/, которые не являются статическими файлами
-    app.router.add_get('/bot-app/{tail:.*}', serve_main_app_page)
+    # 5. Маршрут-заглушка для любых других путей внутри /bot-app/, которые не являются статическими файлами или API
+    # Исключаем /api/ из перехвата, чтобы API эндпоинты работали корректно
+    async def serve_app_page_fallback(request):
+        path = request.match_info.get('tail', '')
+        # Если это API путь, возвращаем 404
+        if path.startswith('api/'):
+            return web.Response(status=404, text="API endpoint not found")
+        # Иначе показываем главную страницу
+        return await serve_main_app_page(request)
+    
+    app.router.add_get('/bot-app/{tail:.*}', serve_app_page_fallback)
 
     # 6. Security.txt endpoint
     async def serve_security_txt(request):

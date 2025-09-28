@@ -1411,6 +1411,10 @@ function collectFormData() {
 // Оборачиваем весь основной код в обработчик DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // Debug flag already defined globally
+    if (!DEBUG && typeof console !== 'undefined' && console.log) {
+        console.log = function(){};
+    }
 
     // One-time Service Worker unregister (cleanup legacy sw.js caches)
     async function unregisterServiceWorkersOnce() {
