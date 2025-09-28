@@ -570,25 +570,6 @@
           "https://drazhin.by/assets/images/products/89/dscf7122.jpg"
         ],
         "menuindex": "15"
-      },
-      {
-        "id": "105",
-        "name": "Панеттоне 600 гр",
-        "url": "https://drazhin.by/",
-        "image": "https://drazhin.by/assets/images/products/105/dv5a0607.jpg",
-        "price": "68",
-        "short_description": "",
-        "weight": "600",
-        "for_vegans": "",
-        "availability_days": "",
-        "ingredients": "мука пшеничная высший сорт, сухофрукты (изюм, апельсин) масло сладкосливочное несоленое 84% (сливки пастеризованные из коровьего молока), желток куриного яйца, шоколад темный 54,5% Barry Callebaut, пудра сахарная, сахар, миндаль ядра, миндаль лепестки, цедра апельсина, цедра лимона, мед, вода, ром темный, ваниль стручковая. ",
-        "calories": "313",
-        "energy_value": "Белки: 5,74 г. Жиры: 13,1 г. Углеводы: 43,36 г.",
-        "images": [
-          "https://drazhin.by/assets/images/products/105/dv5a0607.jpg",
-          "https://drazhin.by/assets/images/products/105/dv5a6498.jpg"
-        ],
-        "menuindex": "20"
       }
     ],
     "category_18": [
@@ -1334,9 +1315,9 @@
     }
   ],
   "metadata": {
-    "last_updated": "2025-09-26T13:00:42.031962",
-    "version": "v1758884442",
-    "products_count": 68,
+    "last_updated": "2025-09-28T09:34:14.019858",
+    "version": "v1759044854",
+    "products_count": 67,
     "categories_count": 4
   }
 }

@@ -123,7 +123,6 @@ function setMainButtonTextReliable(buttonText) {
       }, 8);
     });
   } catch (e) {
-    console.warn('setMainButtonTextReliable failed', e);
     try { Telegram.WebApp.MainButton.setText(buttonText); Telegram.WebApp.MainButton.show(); } catch(_) {}
   }
 }
@@ -132,7 +131,7 @@ function setMainButtonTextReliable(buttonText) {
 document.addEventListener('DOMContentLoaded', () => {
   try { 
     customizeMainButtonColor(); // Настраиваем цвет MainButton
-  } catch (e) { console.warn('customizeMainButtonColor error', e); }
+  } catch (e) { }
 });
 
 
@@ -438,25 +437,6 @@ function forceTelegramCacheClear() {
 }
 
 // Disable Telegram WebApp debug logs
-if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-    // Override console methods to filter out Telegram WebApp logs
-    const originalLog = console.log;
-    const originalWarn = console.warn;
-    
-    console.log = function(...args) {
-        const message = args.join(' ');
-        if (!message.includes('[Telegram.WebView]') && !message.includes('postEvent')) {
-            originalLog.apply(console, args);
-        }
-    };
-    
-    console.warn = function(...args) {
-        const message = args.join(' ');
-        if (!message.includes('[Telegram.WebView]') && !message.includes('postEvent')) {
-            originalWarn.apply(console, args);
-        }
-    };
-}
 
 // Initialize cache management on app start
 async function initializeCacheManagement() {
@@ -481,7 +461,6 @@ async function initializeCacheManagement() {
         setInterval(async () => {
             const cacheHealth = await checkCacheHealth();
             if (!cacheHealth) {
-                console.warn('⚠️ Cache health check failed, clearing cache (preserving cart)');
                 await clearBrowserCache();
             }
         }, checkInterval);
@@ -1432,10 +1411,6 @@ function collectFormData() {
 // Оборачиваем весь основной код в обработчик DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // Debug flag already defined globally
-    if (!DEBUG && typeof console !== 'undefined' && console.log) {
-        console.log = function(){};
-    }
 
     // One-time Service Worker unregister (cleanup legacy sw.js caches)
     async function unregisterServiceWorkersOnce() {
@@ -1447,7 +1422,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             regs.forEach(reg => reg.unregister());
             localStorage.setItem(flagKey, '1');
         } catch (e) {
-            console.warn('SW unregister failed:', e);
         }
     }
 
@@ -1480,7 +1454,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             sessionStorage.setItem(bustFlag, '1');
         } catch (e) {
-            console.warn('iOS hard bust failed:', e);
         }
     }
 
@@ -1565,7 +1538,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const newData = await fetchAllData();
                     
                     if (!newData) {
-                        console.log('🔄 Auto-refresh: Failed to fetch data, marking as invalid');
                         productsDataValid = false;
                         return;
                     }
@@ -1573,21 +1545,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const newProductsData = newData.products || {};
                     const newCategoriesData = newData.categories || [];
                     
-                    console.log('🔄 Auto-refresh: All data received:', {
-                        products: Object.keys(newProductsData).length,
-                        categories: newCategoriesData.length,
-                        version: newData.metadata?.version || 'unknown'
-                    });
                     
                     // Check if products data has actually changed
                     const hasProductsChanges = checkProductsDataChanges(previousProductsData, newProductsData);
                     const hasCategoriesChanges = checkCategoriesDataChanges(previousCategoriesData, newCategoriesData);
                     
-                    console.log('🔄 Auto-refresh: Products changes detected:', hasProductsChanges);
-                    console.log('🔄 Auto-refresh: Categories changes detected:', hasCategoriesChanges);
                     
                     if (hasProductsChanges || hasCategoriesChanges) {
-                        console.log('🔄 Auto-refresh: Starting UI update...');
                         // Set flag to prevent multiple simultaneous updates
                         isUpdatingUI = true;
                         
@@ -1597,7 +1561,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                             // User is on a category screen, refresh the product grid
                             const currentCategory = localStorage.getItem('lastProductCategory');
                             if (currentCategory) {
-                                console.log('🔄 Auto-refresh: Refreshing product grid for category:', currentCategory);
                                 // Refreshing product grid for category
                                 await loadProducts(currentCategory);
                             }
@@ -1606,14 +1569,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         // 🔄 REFRESH CATEGORIES IF ON CATEGORIES SCREEN AND CATEGORIES CHANGED
                         const categoriesContainer = document.getElementById('categories-container');
                         if (categoriesContainer && !categoriesContainer.classList.contains('hidden') && hasCategoriesChanges) {
-                            console.log('🔄 Auto-refresh: Refreshing categories grid');
                             await loadCategories();
                         }
                         
                         // 🔄 REFRESH CART IF ON CART SCREEN (for price/availability changes)
                         const cartContainer = document.getElementById('cart-container');
                         if (cartContainer && !cartContainer.classList.contains('hidden')) {
-                            console.log('🔄 Auto-refresh: Refreshing cart display');
                             // Update cart display to reflect any price or availability changes
                             renderCart();
                         }
@@ -1627,14 +1588,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         previousProductsData = JSON.parse(JSON.stringify(newProductsData));
                         previousCategoriesData = JSON.parse(JSON.stringify(newCategoriesData));
                         
-                        console.log('🔄 Auto-refresh: UI update completed');
                         // Reset flag after update is complete
                         isUpdatingUI = false;
-                    } else {
-                        console.log('🔄 Auto-refresh: No changes detected, skipping UI update');
                     }
                 } catch (error) {
-                    console.warn('Auto-refresh failed:', error);
                     // Reset flag on error
                     isUpdatingUI = false;
                 }
@@ -1647,7 +1604,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Function to check if products data has changed
     function checkProductsDataChanges(previousData, newData) {
         if (!previousData || !newData) {
-            console.log('🔄 Auto-refresh: First run or missing data, considering as changed');
             return true; // First run or missing data, consider as changed
         }
         
@@ -1747,7 +1703,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Function to check if categories data has changed
     function checkCategoriesDataChanges(previousData, newData) {
         if (!previousData || !newData) {
-            console.log('🔄 Auto-refresh: First run or missing categories data, considering as changed');
             return true; // First run or missing data, consider as changed
         }
         
@@ -2125,7 +2080,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                     // Показываем экран загрузки и ждем данные
                     if (isDataLoading || !productsData[categoryKey] || productsData[categoryKey].length === 0) {
-                        console.log('Products data not ready, showing loading screen and waiting...');
                         // Показываем экран загрузки и ждем
                         showProductsLoadingScreen(categoryKey);
                         return;
@@ -2308,11 +2262,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             previousProductsData = JSON.parse(JSON.stringify(productsData));
             previousCategoriesData = JSON.parse(JSON.stringify(categoriesData));
             
-            console.log('All data loaded successfully:', {
-                products: Object.keys(productsData).length,
-                categories: categoriesData.length,
-                version: data.metadata?.version || 'unknown'
-            });
             
             // Mark data as loaded to allow category clicks
             isDataLoading = false;
@@ -2512,9 +2461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Function to activate categories after data is loaded
     function activateCategories() {
-        console.log('Activating categories...');
         const categoryCards = document.querySelectorAll('.category-card');
-        console.log('Found category cards:', categoryCards.length);
         categoryCards.forEach(card => {
             card.style.opacity = '1';
             card.style.pointerEvents = 'auto';
@@ -2523,7 +2470,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Function to show loading screen for products and wait for data
     async function showProductsLoadingScreen(categoryKey) {
-        console.log('Showing products loading screen for category:', categoryKey);
         
         // Показываем индикатор загрузки
         if (mainCategoryTitle) {
@@ -2543,7 +2489,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Если данные загружены
                     if (!isDataLoading && productsData[categoryKey] && productsData[categoryKey].length > 0) {
                         clearInterval(interval);
-                        console.log('Products data loaded, proceeding to load products');
                         resolve(true);
                         return;
                     }
@@ -2551,7 +2496,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Если превышено время ожидания
                     if (waitedTime >= maxWaitTime) {
                         clearInterval(interval);
-                        console.warn('Timeout waiting for products data');
                         resolve(false);
                         return;
                     }
@@ -2572,7 +2516,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Function to show error screen for products with user options
     function showProductsErrorScreen(categoryKey) {
-        console.log('Showing products error screen for category:', categoryKey);
         
         // Показываем сообщение об ошибке
         if (mainCategoryTitle) {
@@ -2600,14 +2543,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (retryBtn) {
                 retryBtn.addEventListener('click', () => {
-                    console.log('User clicked retry, attempting to load products again');
                     showProductsLoadingScreen(categoryKey);
                 });
             }
             
             if (backBtn) {
                 backBtn.addEventListener('click', () => {
-                    console.log('User clicked back to categories');
                     displayView('categories');
                 });
             }
@@ -2617,13 +2558,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadProducts(categoryKey) {
         // Проверяем, загружены ли данные
         if (isDataLoading) {
-            console.warn('Data is still loading, please wait...');
             return;
         }
         
         // Данные уже загружены через fetchAllData, просто проверяем их наличие
         if (!productsData[categoryKey]) {
-            console.warn('No products found for this category.');
             await displayView('categories');
             return;
         }
@@ -3800,7 +3739,6 @@ function addErrorClearingListeners() {
             try {
                 setMainButtonTextReliable(buttonText);
             } catch (e) {
-                console.warn('MainButton update failed:', e);
             }
         } else {
             // Web-кнопка больше не используется
@@ -3902,16 +3840,13 @@ function addErrorClearingListeners() {
     async function proceedToInitialView() {
         // Предотвращаем повторный вызов
         if (isInitialViewProceeded) {
-            console.log('Initial view already proceeded, skipping...');
             return;
         }
         isInitialViewProceeded = true;
         
         try {
             // Загружаем ВСЕ данные сразу
-            console.log('Loading all data for initial view...');
             await fetchAllData();
-            console.log('All data loaded successfully');
         } catch (error) {
             console.error('Failed to load all data:', error);
             // Продолжаем с пустыми данными
@@ -3956,12 +3891,10 @@ function addErrorClearingListeners() {
     // Load background image
     backgroundImg.src = '/bot-app/images/Hleb.jpg?v=1.3.109&t=1758518052';
     backgroundImg.onload = () => {
-        console.log('Background image loaded');
         backgroundLoaded = true;
         checkAllImagesLoaded();
     };
     backgroundImg.onerror = () => {
-        console.warn('Background image failed to load');
         backgroundLoaded = true; // Continue anyway
         checkAllImagesLoaded();
     };
@@ -3969,19 +3902,16 @@ function addErrorClearingListeners() {
     // Load welcome logo
     welcomeLogoImg.src = '/bot-app/images/logo.svg?v=1.3.109&t=1758518052';
     welcomeLogoImg.onload = () => {
-        console.log('Welcome logo loaded');
         welcomeLogoLoaded = true;
         checkAllImagesLoaded();
     };
     welcomeLogoImg.onerror = () => {
-        console.warn('Welcome logo failed to load');
         welcomeLogoLoaded = true; // Continue anyway
         checkAllImagesLoaded();
     };
     
     // Safety timeout in case images never load
     const loadingSafetyTimeout = setTimeout(async () => {
-        console.warn('Loading safety timeout reached. Forcing initial view.');
         // Force both flags to true to ensure loading screen is hidden
         imagesLoaded = true;
         dataLoaded = true;
