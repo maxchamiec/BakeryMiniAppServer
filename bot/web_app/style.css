@@ -149,7 +149,7 @@ button, a, input, select, textarea, .clickable-image, .details-text {
     margin-top: 0px; /* Move further to top edge to cover main-page-logo-container */
     overflow: hidden;
     margin-bottom: 0px;
-    z-index: 10; /* Ensure it's above main-page-logo-container */
+    z-index: 20; /* Ensure it's above main-page-logo-container and product-vegan-icon */
     border-bottom: 1px solid #ffffff; /* White border bottom */
 }
 
