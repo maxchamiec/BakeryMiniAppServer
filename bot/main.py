@@ -1349,12 +1349,11 @@ async def main():
     global bot
     
     # ИСПРАВЛЕНО: Принудительно используем IPv4 (fix для A1 Cloud VPS где IPv6 не работает)
-    # Создаём явную IPv4-only сессию для бота
-    connector = TCPConnector(family=socket.AF_INET)
-    session = ClientSession(connector=connector)
+    # NOTE: aiogram 3.x creates its own session internally, we can't pass custom session
+    # Instead, we rely on system-level IPv6 disable (sysctl) and per-module TCPConnector(family=AF_INET)
     
-    # Инициализируем бота с явной IPv4 сессией
-    bot = Bot(token=BOT_TOKEN, session=session)
+    # Инициализируем бота (aiogram создаст свою сессию)
+    bot = Bot(token=BOT_TOKEN)
     
     await load_products_data()
     # Загружаем счетчик заказов
@@ -1392,8 +1391,7 @@ async def main():
         await runner.cleanup()
         logger.info("API сервер остановлен.")
         logger.info("Закрытие сессии бота...")
-        if bot and bot.session:
-            await bot.session.close()
+        await bot.session.close()
         logger.info("Сессия бота закрыта.")
 
 
