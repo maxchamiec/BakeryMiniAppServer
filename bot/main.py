@@ -5,6 +5,7 @@ import os
 import re
 import smtplib
 import datetime
+import socket
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -1331,7 +1332,11 @@ async def main():
     """Главная функция для запуска бота."""
     global bot
     
-    # ИСПРАВЛЕНО: Инициализируем бота с дефолтной сессией (aiogram создаст свою)
+    # ИСПРАВЛЕНО: Принудительно используем IPv4 (fix для A1 Cloud VPS где IPv6 не работает)
+    # Устанавливаем переменную окружения для aiohttp
+    os.environ['AIOHTTPNO_EXTENSIONS'] = '1'
+    
+    # Инициализируем бота (aiogram создаст свою сессию с нашими настройками)
     bot = Bot(token=BOT_TOKEN)
     
     await load_products_data()
@@ -1407,5 +1412,6 @@ async def security_monitoring_loop():
             await asyncio.sleep(300)  # Ждем 5 минут при ошибке
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# ВАЖНО: Не запускаем main() здесь, так как используем start_bot.py
+# if __name__ == "__main__":
+#     asyncio.run(main())
