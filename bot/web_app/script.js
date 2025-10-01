@@ -1513,10 +1513,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let navigationSource = null; // Отслеживание источника навигации ('cart' или 'categories')
 
     const CATEGORY_DISPLAY_MAP = {
-        "category_16": { name: "Ремесленный хлеб", icon: "images/bread1.svg?v=1.3.109&t=1758518052", image: "images/bread1.svg?v=1.3.109&t=1758518052" },
-        "category_17": { name: "Выпечка", icon: "images/bakery.svg?v=1.3.109&t=1758518052", image: "images/bakery.svg?v=1.3.109&t=1758518052" },
-        "category_18": { name: "Круассаны", icon: "images/crouasan.svg?v=1.3.109&t=1758518052", image: "images/crouasan.svg?v=1.3.109&t=1758518052" },
-        "category_19": { name: "Десерты", icon: "images/cookie.svg?v=1.3.109&t=1758518052", image: "images/cookie.svg?v=1.3.109&t=1758518052" }
+        "category_16": { name: "Ремесленный хлеб", icon: "images/bread1.svg?v=1.3.110&t=1758518052", image: "images/bread1.svg?v=1.3.110&t=1758518052" },
+        "category_17": { name: "Выпечка", icon: "images/bakery.svg?v=1.3.110&t=1758518052", image: "images/bakery.svg?v=1.3.110&t=1758518052" },
+        "category_18": { name: "Круассаны", icon: "images/crouasan.svg?v=1.3.110&t=1758518052", image: "images/crouasan.svg?v=1.3.110&t=1758518052" },
+        "category_19": { name: "Десерты", icon: "images/cookie.svg?v=1.3.110&t=1758518052", image: "images/cookie.svg?v=1.3.110&t=1758518052" }
     };
 
     // Products data will be loaded when user navigates to categories
@@ -2414,7 +2414,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const categoryImageUrl = category.image || 
                     (productsData[category.key] && productsData[category.key].length > 0
                         ? productsData[category.key][0].image
-                        : 'images/logo.svg?v=1.3.109&t=1758518052');
+                        : 'images/logo.svg?v=1.3.110&t=1758518052');
 
                 const categoryCard = document.createElement('div');
                 categoryCard.className = 'category-card-item';
@@ -2424,7 +2424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <img src="${categoryImageUrl}"
                          alt="${categoryDisplayName}"
                          class="category-image"
-                         onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.109&t=1758518052';">
+                         onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.110&t=1758518052';">
                     <div class="category-text-wrapper">
                         <h3 class="category-title-text">${categoryDisplayName}</h3>
                         <div class="category-link-text">
@@ -2611,12 +2611,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             productCard.innerHTML = `
                 <div class="product-image-container">
-                    <img src="${product.image || 'images/logo.svg?v=1.3.109&t=1758518052'}" 
+                    <img src="${product.image || 'images/logo.svg?v=1.3.110&t=1758518052'}" 
                          alt="${product.name}" 
                          class="product-image clickable-image" 
                          data-product-id="${product.id}"
                          loading="lazy" decoding="async"
-                         onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.109&t=1758518052';">
+                         onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.110&t=1758518052';">
                     <div class="product-vegan-icon" style="display: ${product.for_vegans && product.for_vegans !== 'N/A' ? 'block' : 'none'};">
                         <svg class="svg svg-vegan">
                             <use xlink:href="sprite.svg#vegan"></use>
@@ -2881,9 +2881,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                      style="cursor: ${isAvailable ? 'pointer' : 'default'};" 
                      data-product-id="${item.id}" 
                      data-category="${productCategory}">
-                    <img src="${item.image || 'images/logo.svg?v=1.3.109&t=1758518052'}" 
+                    <img src="${item.image || 'images/logo.svg?v=1.3.110&t=1758518052'}" 
                          alt="${item.name}" class="cart-item-image"
-                         onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.109&t=1758518052';">
+                         onerror="this.onerror=null;this.src='images/logo.svg?v=1.3.110&t=1758518052';">
                     ${!isAvailable ? '<div class="unavailable-label">Недоступен</div>' : ''}
                 </div>
                 <div class="cart-item-details">
@@ -3894,7 +3894,7 @@ function addErrorClearingListeners() {
     };
     
     // Load background image
-    backgroundImg.src = '/bot-app/images/Hleb.jpg?v=1.3.109&t=1758518052';
+    backgroundImg.src = '/bot-app/images/Hleb.jpg?v=1.3.110&t=1758518052';
     backgroundImg.onload = () => {
         backgroundLoaded = true;
         checkAllImagesLoaded();
@@ -3905,7 +3905,7 @@ function addErrorClearingListeners() {
     };
     
     // Load welcome logo
-    welcomeLogoImg.src = '/bot-app/images/logo.svg?v=1.3.109&t=1758518052';
+    welcomeLogoImg.src = '/bot-app/images/logo.svg?v=1.3.110&t=1758518052';
     welcomeLogoImg.onload = () => {
         welcomeLogoLoaded = true;
         checkAllImagesLoaded();
