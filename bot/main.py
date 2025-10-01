@@ -732,6 +732,7 @@ async def _send_order_notifications(order_details: dict, cart_items: list,
         # ИЗМЕНЕНИЕ: Отправка сообщения администратору в Telegram с timeout
         if ADMIN_CHAT_ID:
             try:
+                logger.info(f"Отправка заказа {order_number} администратору в Telegram...")
                 await asyncio.wait_for(
                     bot.send_message(
                         chat_id=int(ADMIN_CHAT_ID),
@@ -740,10 +741,11 @@ async def _send_order_notifications(order_details: dict, cart_items: list,
                     ),
                     timeout=10.0  # 10 секунд timeout
                 )
+                logger.info(f"✅ Заказ {order_number} успешно отправлен администратору в Telegram")
             except asyncio.TimeoutError:
-                logger.error(f"Timeout при отправке заказа {order_number} администратору в Telegram. ID чата: {ADMIN_CHAT_ID}.")
+                logger.error(f"⏱️ Timeout при отправке заказа {order_number} администратору в Telegram. ID чата: {ADMIN_CHAT_ID}.")
             except Exception as e:
-                logger.error(f"Ошибка при отправке заказа {order_number} "
+                logger.error(f"❌ Ошибка при отправке заказа {order_number} "
                             f"администратору в Telegram. ID чата: {ADMIN_CHAT_ID}. Ошибка: {e}")
         else:
             logger.warning("ADMIN_CHAT_ID не установлен. "
@@ -785,6 +787,7 @@ async def _send_order_notifications(order_details: dict, cart_items: list,
         # Отправляем подтверждение заказа клиенту в Telegram с timeout
         if user_id:
             try:
+                logger.info(f"Отправка подтверждения заказа {order_number} клиенту {user_id} в Telegram...")
                 customer_message = _format_customer_telegram_message(
                     order_number, order_details, cart_items, total_amount, delivery_text
                 )
@@ -796,10 +799,11 @@ async def _send_order_notifications(order_details: dict, cart_items: list,
                     ),
                     timeout=10.0  # 10 секунд timeout
                 )
+                logger.info(f"✅ Подтверждение заказа {order_number} успешно отправлено клиенту {user_id}")
             except asyncio.TimeoutError:
-                logger.error(f"Timeout при отправке подтверждения заказа клиенту {user_id} в Telegram.")
+                logger.error(f"⏱️ Timeout при отправке подтверждения заказа клиенту {user_id} в Telegram.")
             except Exception as e:
-                logger.error(f"Ошибка при отправке подтверждения заказа клиенту {user_id} в Telegram: {e}")
+                logger.error(f"❌ Ошибка при отправке подтверждения заказа клиенту {user_id} в Telegram: {e}")
         else:
             logger.warning("User ID не доступен. Подтверждение заказа в Telegram клиенту не будет отправлено.")
 
