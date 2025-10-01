@@ -263,14 +263,10 @@ async def clear_user_cart_messages(chat_id: int):
     pass
 
 
-# ИЗМЕНЕНИЕ: Новая асинхронная функция для отправки email
-async def send_email_notification(recipient_email: str, subject: str, body: str, sender_name: str = "Пекарня Дражина"):
-    """Отправляет email уведомление."""
-    if not config.ENABLE_EMAIL_NOTIFICATIONS:
-        return
-    
+# ИЗМЕНЕНИЕ: Синхронная функция для отправки email (будет вызвана в отдельном потоке)
+def _send_email_sync(recipient_email: str, subject: str, body: str, sender_name: str = "Пекарня Дражина"):
+    """Отправляет email уведомление (синхронная версия для запуска в отдельном потоке)."""
     try:
-
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = f"{sender_name} <{ADMIN_EMAIL}>"
@@ -284,12 +280,31 @@ async def send_email_notification(recipient_email: str, subject: str, body: str,
             server.login(ADMIN_EMAIL, config.ADMIN_EMAIL_PASSWORD)
             server.send_message(msg)
 
+        return True
+    except Exception as e:
+        logger.error(f"Ошибка при отправке email на {recipient_email}: {e}")
+        return False
+
+
+async def send_email_notification(recipient_email: str, subject: str, body: str, sender_name: str = "Пекарня Дражина"):
+    """Отправляет email уведомление в отдельном потоке (не блокирует event loop)."""
+    if not config.ENABLE_EMAIL_NOTIFICATIONS:
+        return
+    
+    try:
+        # Запускаем отправку email в отдельном потоке, чтобы не блокировать event loop
+        success = await asyncio.to_thread(
+            _send_email_sync, recipient_email, subject, body, sender_name
+        )
         
-        # Log security event
-        security_manager._log_security_event("email_sent", {
-            "recipient": recipient_email,
-            "subject": subject
-        })
+        if success:
+            # Log security event
+            security_manager._log_security_event("email_sent", {
+                "recipient": recipient_email,
+                "subject": subject
+            })
+        else:
+            logger.warning(f"Failed to send email to {recipient_email}")
 
     except smtplib.SMTPAuthenticationError as e:
         logger.error(f"Ошибка аутентификации SMTP: {e}")
