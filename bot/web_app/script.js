@@ -9,6 +9,117 @@ Telegram.WebApp.expand(); // Разворачиваем Web App на весь э
 // Debug flag to control noisy logs and debug globals
 const DEBUG = true;
 
+function safeJSONParse(key, fallback = null) {
+  try {
+    const rawValue = localStorage.getItem(key);
+    if (rawValue === null) {
+      return fallback;
+    }
+    const parsed = JSON.parse(rawValue);
+    return parsed ?? fallback;
+  } catch (error) {
+    console.warn(`[Storage] Broken JSON in ${key}, resetting`, error);
+    try {
+      localStorage.removeItem(key);
+    } catch (removeError) {
+      console.warn(`[Storage] Failed to remove ${key}`, removeError);
+    }
+    return fallback;
+  }
+}
+
+function wrapTelegramSendData() {
+  if (!window.Telegram || !Telegram.WebApp || typeof Telegram.WebApp.sendData !== 'function') {
+    return;
+  }
+  if (Telegram.WebApp.__sendDataWrapped) {
+    return;
+  }
+  const originalSendData = Telegram.WebApp.sendData.bind(Telegram.WebApp);
+  Telegram.WebApp.sendData = (payload) => {
+    try {
+      if (DEBUG) {
+        console.debug('[Telegram.WebApp.sendData] payload', payload);
+      }
+      return originalSendData(payload);
+    } catch (error) {
+      console.error('Telegram.WebApp.sendData failed:', error);
+      throw error;
+    }
+  };
+  Telegram.WebApp.__sendDataWrapped = true;
+}
+
+function initStorageSafety() {
+  STORAGE_KEYS_TO_VALIDATE_ON_START.forEach((key) => {
+    safeJSONParse(key);
+  });
+}
+
+function getInitDataDetails() {
+  if (!window.Telegram || !Telegram.WebApp) {
+    return null;
+  }
+  const initData = Telegram.WebApp.initData || '';
+  const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
+  return {
+    initData,
+    initDataUnsafe,
+    authDate: initDataUnsafe.auth_date ? Number(initDataUnsafe.auth_date) : null,
+    launchId: initDataUnsafe.launch_id || null
+  };
+}
+
+function isInitDataExpired(authDate, maxAgeSeconds) {
+  if (!authDate) {
+    return true;
+  }
+  const currentUnix = Math.floor(Date.now() / 1000);
+  return (currentUnix - authDate) > maxAgeSeconds;
+}
+
+function shouldRefreshLaunch(launchId) {
+  if (!launchId) {
+    return false;
+  }
+  const lastLaunchId = sessionStorage.getItem(LAST_LAUNCH_ID_SESSION_KEY);
+  sessionStorage.setItem(LAST_LAUNCH_ID_SESSION_KEY, String(launchId));
+  return lastLaunchId && lastLaunchId === String(launchId);
+}
+
+function performInitDataRecovery(reason) {
+  if (DEBUG) {
+    console.warn(`[InitData] Recovery triggered: ${reason}`);
+  }
+  STORAGE_KEYS_TO_VALIDATE_ON_START.forEach((key) => {
+    if (!STORAGE_KEY_WHITELIST.has(key)) {
+      localStorage.removeItem(key);
+    }
+  });
+  const now = Date.now();
+  const url = new URL(window.location.href);
+  url.searchParams.set('_relaunch', String(now));
+  setTimeout(() => {
+    window.location.replace(url.toString());
+  }, 100);
+}
+
+function validateInitDataFreshness() {
+  const details = getInitDataDetails();
+  if (!details) {
+    return;
+  }
+  const { authDate, launchId } = details;
+  const expired = isInitDataExpired(authDate, INIT_DATA_MAX_AGE_SECONDS);
+  const repeatedLaunch = shouldRefreshLaunch(launchId);
+  if (DEBUG) {
+    console.debug('[InitData] auth_date:', authDate, 'expired:', expired, 'launchId:', launchId, 'repeatedLaunch:', repeatedLaunch);
+  }
+  if (expired || repeatedLaunch) {
+    performInitDataRecovery(expired ? 'auth_date_expired' : 'launch_id_reused');
+  }
+}
+
 // ===== SECURITY CONFIGURATION =====
 // Use Telegram WebApp initData as secret (unique per session)
 function getHMACSecret() {
@@ -238,6 +349,13 @@ const CUSTOMER_DATA_VERSION = '1.0.0';
 const CUSTOMER_DATA_EXPIRATION_DAYS = 365; // Keep customer data for 1 year
 const CUSTOMER_DATA_EXPIRATION_MS = CUSTOMER_DATA_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 
+const STORAGE_KEY_WHITELIST = new Set(['cart', 'cart_version', 'app_version', CUSTOMER_DATA_KEY]);
+const STORAGE_KEYS_TO_VALIDATE_ON_START = ['cart', CUSTOMER_DATA_KEY, 'custom_availability_abbreviations', 'lastProductCategory'];
+const STORAGE_KEYS_TO_PRUNE_AFTER_ORDER = ['last_order'];
+const INIT_DATA_MAX_AGE_SECONDS = 300;
+const INIT_DATA_REFRESH_FLAG = 'initdata_refresh_attempted';
+const LAST_LAUNCH_ID_SESSION_KEY = 'tg_last_launch_id';
+
 // Mobile detection for cache strategy
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -256,7 +374,7 @@ async function clearBrowserCache() {
         }
         
         // SMART CLEAR: Preserve cart data and essential app data
-        const cartData = localStorage.getItem('cart');
+        const cartData = safeJSONParse('cart', null);
         const cartVersion = localStorage.getItem('cart_version');
         const appVersion = localStorage.getItem('app_version');
         
@@ -264,7 +382,7 @@ async function clearBrowserCache() {
         sessionStorage.clear();
         
         // Selectively clear localStorage (preserve cart and customer data)
-        const keysToPreserve = ['cart', 'cart_version', 'app_version', CUSTOMER_DATA_KEY];
+        const keysToPreserve = Array.from(STORAGE_KEY_WHITELIST);
         const keysToClear = [];
         
         for (let i = 0; i < localStorage.length; i++) {
@@ -279,18 +397,13 @@ async function clearBrowserCache() {
         
         // Restore essential data if accidentally cleared
         if (cartData && !localStorage.getItem('cart')) {
-            localStorage.setItem('cart', cartData);
+            localStorage.setItem('cart', JSON.stringify(cartData));
         }
         if (cartVersion && !localStorage.getItem('cart_version')) {
             localStorage.setItem('cart_version', cartVersion);
         }
         if (appVersion && !localStorage.getItem('app_version')) {
             localStorage.setItem('app_version', appVersion);
-        }
-        
-        // Preserve customer data during cache clear
-        const customerData = localStorage.getItem(CUSTOMER_DATA_KEY);
-        if (customerData) {
         }
         
         return true;
@@ -442,7 +555,10 @@ function forceTelegramCacheClear() {
 async function initializeCacheManagement() {
     try {
         // Initializing smart cache management
-        
+        STORAGE_KEYS_TO_VALIDATE_ON_START.forEach((key) => {
+            safeJSONParse(key);
+        });
+
         // Mobile-specific initialization
         if (isMobileDevice && isTelegramWebView) {
             // Mobile Telegram WebView - using aggressive cache strategy
@@ -1772,8 +1888,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
-    // Initialize cache management system
-    await initializeCacheManagement();
+// Initialize cache management system
+await initializeCacheManagement();
     
     // Check cart expiration on app start
     const cartExpired = checkCartExpiration();
@@ -2244,6 +2360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Make signed request
             const response = await fetch(path, {
                 method: 'GET',
+                cache: 'no-store',
                 headers: {
                     'X-Signature': signature,
                     'X-Timestamp': timestamp.toString(),
@@ -3143,8 +3260,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.className = 'availability-info-container';
             container.innerHTML = newHTML;
 
-            // Вставляем контейнер после итоговой суммы, но перед кнопками действий (place order button)
-            const cartActionsBottom = document.querySelector('.cart-actions-bottom');
+                        // Вставляем контейнер после итоговой суммы, но перед кнопками действий (place order button)
+                        const cartActionsBottom = document.querySelector('.cart-actions-bottom');
             if (cartActionsBottom) {
                 cartActionsBottom.parentNode.insertBefore(container, cartActionsBottom);
             }
@@ -3370,12 +3487,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Order sent successfully - clear cart immediately and then close WebApp
                     // Order sent successfully, clearing cart
                     clearCart();
+                    STORAGE_KEYS_TO_PRUNE_AFTER_ORDER.forEach((key) => localStorage.removeItem(key));
                     
                     // Verify cart was cleared and force clear if needed
                     setTimeout(() => {
                         if (Object.keys(cart).length > 0) {
                             // Cart still has items, forcing clear
                             clearCart();
+                            STORAGE_KEYS_TO_PRUNE_AFTER_ORDER.forEach((key) => localStorage.removeItem(key));
                         }
                     }, 1000);
                     
