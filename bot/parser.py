@@ -2,7 +2,8 @@
 
 import logging
 from bs4 import BeautifulSoup
-from aiohttp import ClientSession, ClientResponseError
+from aiohttp import ClientSession, ClientResponseError, TCPConnector
+import socket
 import asyncio
 import json
 from urllib.parse import urljoin
@@ -312,7 +313,8 @@ async def main():
         "category_desserts": []
     }
 
-    async with ClientSession() as session:
+    connector = TCPConnector(family=socket.AF_INET)
+    async with ClientSession(connector=connector) as session:
         for category_name, category_url in categories.items():
             # Шаг 1: Парсинг страниц категорий для получения базовой информации и URL продукта
             products_from_category = await get_products_from_category_page(session, category_url)

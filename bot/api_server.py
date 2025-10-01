@@ -7,6 +7,7 @@ import hashlib
 import base64
 import ssl
 import aiohttp
+import socket
 from aiohttp import web
 import aiohttp_cors
 from collections import defaultdict
@@ -69,7 +70,7 @@ async def load_products_from_modx_api(category_id: str = None) -> list:
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
         
-        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        connector = aiohttp.TCPConnector(ssl=ssl_context, family=socket.AF_INET)
         
         async with aiohttp.ClientSession(
             connector=connector,
@@ -97,7 +98,7 @@ async def load_categories_from_modx_api() -> list:
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
         
-        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        connector = aiohttp.TCPConnector(ssl=ssl_context, family=socket.AF_INET)
         
         async with aiohttp.ClientSession(
             connector=connector,

@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import ssl
+import socket
 import aiohttp
 from datetime import datetime
 from typing import Dict, List, Any
@@ -41,7 +42,7 @@ async def load_products_from_modx_api() -> List[Dict[str, Any]]:
             ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_NONE
             
-            connector = aiohttp.TCPConnector(ssl=ssl_context)
+            connector = aiohttp.TCPConnector(ssl=ssl_context, family=socket.AF_INET)
             
             async with aiohttp.ClientSession(
                 connector=connector,
@@ -95,7 +96,7 @@ async def load_categories_from_modx_api() -> List[Dict[str, Any]]:
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
         
-        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        connector = aiohttp.TCPConnector(ssl=ssl_context, family=socket.AF_INET)
         
         async with aiohttp.ClientSession(
             connector=connector,

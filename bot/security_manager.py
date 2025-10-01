@@ -10,6 +10,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import aiohttp
+import socket
 
 from bot.config import config
 
@@ -151,7 +152,8 @@ class SecurityManager:
     async def monitor_webhook_security(self) -> Dict:
         """Monitor webhook security status."""
         try:
-            async with aiohttp.ClientSession() as session:
+            connector = aiohttp.TCPConnector(family=socket.AF_INET)
+            async with aiohttp.ClientSession(connector=connector) as session:
                 # Get current webhook info
                 webhook_url = f"https://api.telegram.org/bot{config.BOT_TOKEN}/getWebhookInfo"
                 async with session.get(webhook_url) as response:
@@ -223,7 +225,8 @@ class SecurityManager:
     async def delete_webhook(self) -> Dict:
         """Delete current webhook."""
         try:
-            async with aiohttp.ClientSession() as session:
+            connector = aiohttp.TCPConnector(family=socket.AF_INET)
+            async with aiohttp.ClientSession(connector=connector) as session:
                 delete_url = f"https://api.telegram.org/bot{config.BOT_TOKEN}/deleteWebhook"
                 async with session.post(delete_url) as response:
                     if response.status == 200:

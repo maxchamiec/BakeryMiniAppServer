@@ -8,6 +8,7 @@ import os
 import logging
 import asyncio
 import aiohttp
+import socket
 from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 
@@ -31,7 +32,8 @@ class BotSecurityMonitor:
     async def check_webhook_security(self) -> Dict:
         """Check webhook security status."""
         try:
-            async with aiohttp.ClientSession() as session:
+            connector = aiohttp.TCPConnector(family=socket.AF_INET)
+            async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.get(f"{self.api_base}/getWebhookInfo") as response:
                     if response.status == 200:
                         data = await response.json()
@@ -95,7 +97,8 @@ class BotSecurityMonitor:
     async def delete_webhook(self) -> Dict:
         """Delete current webhook."""
         try:
-            async with aiohttp.ClientSession() as session:
+            connector = aiohttp.TCPConnector(family=socket.AF_INET)
+            async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(f"{self.api_base}/deleteWebhook") as response:
                     if response.status == 200:
                         data = await response.json()
@@ -121,7 +124,8 @@ class BotSecurityMonitor:
             }
         
         try:
-            async with aiohttp.ClientSession() as session:
+            connector = aiohttp.TCPConnector(family=socket.AF_INET)
+            async with aiohttp.ClientSession(connector=connector) as session:
                 async with session.post(f"{self.api_base}/setWebhook", data={"url": url}) as response:
                     if response.status == 200:
                         data = await response.json()
@@ -153,7 +157,8 @@ class BotSecurityMonitor:
     async def monitor_bot_activity(self) -> Dict:
         """Monitor bot for suspicious activity."""
         try:
-            async with aiohttp.ClientSession() as session:
+            connector = aiohttp.TCPConnector(family=socket.AF_INET)
+            async with aiohttp.ClientSession(connector=connector) as session:
                 # Get bot updates
                 async with session.get(f"{self.api_base}/getUpdates") as response:
                     if response.status == 200:
