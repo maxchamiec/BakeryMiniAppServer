@@ -774,11 +774,8 @@ async def _send_order_notifications(order_details: dict, cart_items: list,
         if ADMIN_EMAIL:
             admin_email_password = os.environ.get("ADMIN_EMAIL_PASSWORD")
             if admin_email_password:
-                # Отправляем email синхронно, чтобы дождаться результата
-                try:
-                    await send_email_notification(ADMIN_EMAIL, email_subject, email_body, "Пекарня Дражина")
-                except Exception as e:
-                    logger.error(f"Ошибка при отправке email администратору: {e}")
+                # ИСПРАВЛЕНО: Отправляем email в фоне, чтобы не блокировать обработку заказа
+                asyncio.create_task(send_email_notification(ADMIN_EMAIL, email_subject, email_body, "Пекарня Дражина"))
             else:
                 logger.error("Переменная окружения ADMIN_EMAIL_PASSWORD не установлена. "
                             "Email уведомление не будет отправлено.")
