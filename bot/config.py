@@ -57,7 +57,7 @@ class SecureConfig:
         # Web app configuration
         self.BASE_WEBAPP_URL = os.environ.get(
             'BASE_WEBAPP_URL', 
-            'https://miniapp.drazhin.by/bot-app/?v=2.0'
+            'https://miniapp.drazhin.by/bot-app/?v=2.1.0'
         )
         
         # Admin configuration
