@@ -1494,6 +1494,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let cart = loadCartWithExpiration();
     
     let productsData = {};
+    let categoriesData = []; // ИСПРАВЛЕНО: Добавлена глобальная переменная для категорий
     let isSubmitting = false; // Флаг для предотвращения двойной отправки
     let currentProductCategory = null; // Для отслеживания категории продукта
     let productsDataValid = false; // Флаг для отслеживания актуальности данных о продуктах

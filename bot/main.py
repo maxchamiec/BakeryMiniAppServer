@@ -14,7 +14,7 @@ from aiogram.types import (
     Message, CallbackQuery, ReplyKeyboardRemove, ReplyKeyboardMarkup, 
     KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 )
-from aiohttp import web  # Импортируем web для TCPSite
+from aiohttp import web, ClientSession, TCPConnector  # Импортируем web для TCPSite
 
 from bot.api_server import setup_api_server  # ИЗМЕНЕНО: Абсолютный импорт
 from bot.config import (
@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 
 # Инициализация бота и диспетчера
-bot = Bot(token=BOT_TOKEN)
+# Бот будет инициализирован в функции main() с IPv4 сессией
+bot = None
 dp = Dispatcher()
 
 # Регистрируем security middleware
@@ -652,17 +653,27 @@ async def _handle_checkout_order(message: Message, data: dict, user_id: int):
             logger.error(f"Тип ошибки: {type(notification_error).__name__}")
             # Продолжаем выполнение даже если уведомления не отправились
 
-        # Отправляем краткое подтверждение пользователю
+        # Отправляем краткое подтверждение пользователю с timeout
         try:
-            await message.answer(
-                f"✅ Заказ оформлен! Детали отправлены вам в личные сообщения.",
-                reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+            await asyncio.wait_for(
+                message.answer(
+                    f"✅ Заказ оформлен! Детали отправлены вам в личные сообщения.",
+                    reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+                ),
+                timeout=10.0  # 10 секунд timeout
             )
+        except asyncio.TimeoutError:
+            logger.error(f"Timeout при отправке ответа пользователю.")
         except Exception as e:
             logger.error(f"Ошибка при отправке ответа пользователю: {e}")
             # Пытаемся отправить простой ответ без форматирования
             try:
-                await message.answer(f"Заказ {order_number} оформлен!")
+                await asyncio.wait_for(
+                    message.answer(f"Заказ {order_number} оформлен!"),
+                    timeout=10.0
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout при отправке простого ответа.")
             except Exception as e2:
                 logger.error(f"Критическая ошибка при отправке ответа: {e2}")
 
@@ -702,14 +713,19 @@ async def _send_order_notifications(order_details: dict, cart_items: list,
             user_link_fallback = f"\n[💬 Написать клиенту](tg://user?id={user_id})" if user_id else ""
             telegram_order_summary = f"*НОВЫЙ ЗАКАЗ {order_number}*\n\nОшибка при формировании детального сообщения. Проверьте логи.{user_link_fallback}"
 
-        # ИЗМЕНЕНИЕ: Отправка сообщения администратору в Telegram
+        # ИЗМЕНЕНИЕ: Отправка сообщения администратору в Telegram с timeout
         if ADMIN_CHAT_ID:
             try:
-                await bot.send_message(
-                    chat_id=int(ADMIN_CHAT_ID),
-                    text=telegram_order_summary,
-                    parse_mode=ParseMode.MARKDOWN
+                await asyncio.wait_for(
+                    bot.send_message(
+                        chat_id=int(ADMIN_CHAT_ID),
+                        text=telegram_order_summary,
+                        parse_mode=ParseMode.MARKDOWN
+                    ),
+                    timeout=10.0  # 10 секунд timeout
                 )
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout при отправке заказа {order_number} администратору в Telegram. ID чата: {ADMIN_CHAT_ID}.")
             except Exception as e:
                 logger.error(f"Ошибка при отправке заказа {order_number} "
                             f"администратору в Telegram. ID чата: {ADMIN_CHAT_ID}. Ошибка: {e}")
@@ -753,17 +769,22 @@ async def _send_order_notifications(order_details: dict, cart_items: list,
         else:
             logger.warning("ADMIN_EMAIL не установлен. Email уведомление не будет отправлено.")
 
-        # Отправляем подтверждение заказа клиенту в Telegram
+        # Отправляем подтверждение заказа клиенту в Telegram с timeout
         if user_id:
             try:
                 customer_message = _format_customer_telegram_message(
                     order_number, order_details, cart_items, total_amount, delivery_text
                 )
-                await bot.send_message(
-                    chat_id=user_id,
-                    text=customer_message,
-                    parse_mode=ParseMode.MARKDOWN
+                await asyncio.wait_for(
+                    bot.send_message(
+                        chat_id=user_id,
+                        text=customer_message,
+                        parse_mode=ParseMode.MARKDOWN
+                    ),
+                    timeout=10.0  # 10 секунд timeout
                 )
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout при отправке подтверждения заказа клиенту {user_id} в Telegram.")
             except Exception as e:
                 logger.error(f"Ошибка при отправке подтверждения заказа клиенту {user_id} в Telegram: {e}")
         else:
@@ -1308,6 +1329,11 @@ async def block_text_input(message: Message):
 
 async def main():
     """Главная функция для запуска бота."""
+    global bot
+    
+    # ИСПРАВЛЕНО: Инициализируем бота с дефолтной сессией (aiogram создаст свою)
+    bot = Bot(token=BOT_TOKEN)
+    
     await load_products_data()
     # Загружаем счетчик заказов
     await load_order_counter()

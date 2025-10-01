@@ -151,7 +151,10 @@ def generate_auth_token() -> dict:
 
 async def get_auth_token(request):
     """Generate authentication token for client"""
-    client_ip = request.remote
+    try:
+        client_ip = getattr(request, 'remote', None) or "unknown"
+    except Exception:
+        client_ip = "unknown"
     
     # Basic rate limiting for token requests (more strict)
     if not check_rate_limit(f"{client_ip}:token"):
@@ -268,9 +271,10 @@ async def check_api_rate_limit(request, action: str = "api_request") -> bool:
     if not config.ENABLE_RATE_LIMITING:
         return True
     
-    # Get client IP
-    client_ip = request.headers.get('X-Forwarded-For', request.remote)
-    if not client_ip:
+    # Get client IP - fix for potential blocking
+    try:
+        client_ip = request.headers.get('X-Forwarded-For') or getattr(request, 'remote', None) or "unknown"
+    except Exception:
         client_ip = "unknown"
     
     current_time = time.time()
@@ -300,7 +304,10 @@ async def get_products_for_webapp(request):
     """Отдает данные о продуктах для Web App, с возможностью фильтрации по категории."""
     
     # ===== RATE LIMITING =====
-    client_ip = request.remote
+    try:
+        client_ip = getattr(request, 'remote', None) or "unknown"
+    except Exception:
+        client_ip = "unknown"
     if not check_rate_limit(client_ip):
         logger.warning(f"API: Rate limit exceeded for IP {client_ip}")
         return web.json_response({"error": "Rate limit exceeded"}, status=429, headers={
