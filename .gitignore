@@ -54,4 +54,8 @@ Thumbs.db
 # MCP Servers (только для локальной разработки)
 telegram-webapp-mcp/
 *-mcp/
-mcp-*/ 
+mcp-*/
+
+# Logs
+logs/
+*.log 
