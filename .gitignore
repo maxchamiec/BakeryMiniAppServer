@@ -59,6 +59,7 @@ mcp-*/
 # Logs
 logs/
 *.log
+data/modx_cache.json
 
 # Documentation (general Git guide - keep only project-specific)
 GIT_WORKFLOW_GUIDE.md 
