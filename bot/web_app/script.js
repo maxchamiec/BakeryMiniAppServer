@@ -4067,11 +4067,11 @@ function addErrorClearingListeners() {
             
             // Redirect to bot chat immediately
             try {
-                Telegram.WebApp.openTelegramLink('https://t.me/drazhin_bakery_bot');
+                Telegram.WebApp.openTelegramLink('https://t.me/drazhin_bot');
             } catch (redirectError) {
                 console.warn('Could not redirect to bot chat:', redirectError);
                 // Fallback: try to open in new window/tab
-                window.open('https://t.me/drazhin_bakery_bot', '_blank');
+                window.open('https://t.me/drazhin_bot', '_blank');
             }
             
             // Close the WebApp after half a second delay

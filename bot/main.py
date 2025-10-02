@@ -557,10 +557,22 @@ async def handle_web_app_data(message: Message):
     """Обработчик данных из Web App."""
     user_id = message.from_user.id
     web_app_data_raw = message.web_app_data.data
+    try:
+        logger.info(
+            "WEBAPP_DATA_RECEIVED",
+            extra={
+                "user_id": user_id,
+                "button_text": getattr(message.web_app_data, 'button_text', None),
+                "raw_preview": web_app_data_raw[:200] if isinstance(web_app_data_raw, str) else "<non-str>"
+            }
+        )
+    except Exception as log_error:
+        logger.warning(f"Failed to log WebApp metadata: {log_error}")
 
     try:
         data = json.loads(web_app_data_raw)
         action = data.get('action')
+        logger.info("WEBAPP_ACTION_DETECTED", extra={"user_id": user_id, "action": action})
 
         if action == 'update_cart':
             await _handle_update_cart(message, data, user_id)
@@ -574,13 +586,19 @@ async def handle_web_app_data(message: Message):
             logger.warning(f"Получено неизвестное действие из Web App для пользователя {user_id}: {action}")
 
     except json.JSONDecodeError:
-        logger.error(f"Неверный формат JSON данных из Web App для пользователя {user_id}: {web_app_data_raw}")
+        logger.error(
+            "WEBAPP_JSON_ERROR",
+            extra={"user_id": user_id, "raw": web_app_data_raw[:500]}
+        )
         await message.answer(
             "Ошибка обработки данных из Web App. Пожалуйста, попробуйте снова.", 
             reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
         )
     except Exception as e:
-        logger.error(f"Неизвестная ошибка при обработке данных из Web App для пользователя {user_id}: {e}")
+        logger.error(
+            "WEBAPP_PROCESSING_ERROR",
+            extra={"user_id": user_id, "error": str(e), "raw": web_app_data_raw[:500]}
+        )
         await message.answer(
             "Произошла внутренняя ошибка. Пожалуйста, попробуйте позже.", 
             reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))

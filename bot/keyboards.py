@@ -7,14 +7,15 @@ BASE_WEBAPP_URL = config.BASE_WEBAPP_URL
 
 # Базовые URL для reply-кнопок (указаны явно по требованию)
 REPLY_BASE_WEBAPP_URL = "https://miniapp.drazhin.by/bot-app/"
-REPLY_MENU_URL = f"{REPLY_BASE_WEBAPP_URL}?view=categories#"
-REPLY_CART_URL = f"{REPLY_BASE_WEBAPP_URL}?view=cart#"
+REPLY_MENU_URL = f"{REPLY_BASE_WEBAPP_URL}?view=categories"
+REPLY_CART_URL = f"{REPLY_BASE_WEBAPP_URL}?view=cart"
 
 
 def _build_web_app_url(view: str) -> str:
     """Формирует URL для inline-кнопок с учётом возможного query у BASE_WEBAPP_URL."""
-    separator = '&' if '?' in BASE_WEBAPP_URL else '?'
-    return f"{BASE_WEBAPP_URL}{separator}view={view}"
+    base_url = BASE_WEBAPP_URL.rstrip('/')
+    separator = '&' if '?' in base_url else '?'
+    return f"{base_url}{separator}view={view}"
 
 # Reply-клавиатура "назад в меню"
 back_to_menu = ReplyKeyboardMarkup(
