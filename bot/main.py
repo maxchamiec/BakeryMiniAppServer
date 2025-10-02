@@ -21,7 +21,11 @@ from bot.api_server import setup_api_server  # ИЗМЕНЕНО: Абсолют�
 from bot.config import (
     BOT_TOKEN, BASE_WEBAPP_URL, ADMIN_CHAT_ID, ADMIN_EMAIL, config
 )  # ИЗМЕНЕНО: Абсолютный импорт
-from bot.keyboards import generate_main_menu  # ИЗМЕНЕНО: Абсолютный импорт
+from bot.keyboards import (
+    generate_inline_main_menu,
+    generate_reply_main_menu,
+    back_to_menu
+)
 from bot.security_manager import security_manager  # ИЗМЕНЕНО: Добавлен импорт security manager
 from bot.security_middleware import security_middleware, fsm_context_middleware  # ИЗМЕНЕНО: Добавлен импорт security middleware
 
@@ -346,11 +350,6 @@ def cart_item_count(user_id: int) -> int:
     return sum(get_user_cart(user_id).values())
 
 
-def reply_main_menu_for(user_id: int) -> InlineKeyboardMarkup:
-    """Return inline main menu keyboard configured for a given user's current cart state."""
-    return generate_main_menu(cart_item_count(user_id))
-
-
 def build_about_message() -> str:
     """Static HTML for the About section."""
     return (
@@ -445,7 +444,7 @@ async def cb_about(callback: CallbackQuery):
     await callback.message.answer(
         text,
         parse_mode=ParseMode.HTML,
-        reply_markup=reply_main_menu_for(callback.from_user.id)
+        reply_markup=generate_inline_main_menu(cart_item_count(callback.from_user.id))
     )
 
 
@@ -462,7 +461,7 @@ async def cb_addresses(callback: CallbackQuery):
             text,
             parse_mode=ParseMode.HTML,
             disable_web_page_preview=True,
-            reply_markup=reply_main_menu_for(callback.from_user.id)
+            reply_markup=generate_inline_main_menu(cart_item_count(callback.from_user.id))
         )
     except Exception as e:
         logger.error(f"Failed to send addresses message: {e}")
@@ -479,7 +478,7 @@ async def cb_delivery(callback: CallbackQuery):
         text,
         parse_mode=ParseMode.HTML,
         disable_web_page_preview=True,
-        reply_markup=reply_main_menu_for(callback.from_user.id)
+        reply_markup=generate_inline_main_menu(cart_item_count(callback.from_user.id))
     )
 
 
@@ -489,19 +488,29 @@ async def cb_delivery(callback: CallbackQuery):
 @dp.message(F.text == "/start")
 async def command_start_handler(message: Message) -> None:
     """Обработчик команды /start."""
+    cart_count = cart_item_count(message.from_user.id)
     await message.answer(
-        "Привет! Я бот-помощник пекарни Дражина. Используй меню ниже, "
-        "чтобы выбрать категорию товаров или узнать информацию о нас.",
-        reply_markup=reply_main_menu_for(message.from_user.id)
+        "Привет! Я бот-помощник пекарни Дражина. Используй клавиатуру снизу, "
+        "чтобы выбрать категорию или узнать информацию о нас.",
+        reply_markup=generate_reply_main_menu(cart_count)
+    )
+    await message.answer(
+        "Главное меню:",
+        reply_markup=generate_inline_main_menu(cart_count)
     )
 
 
 @dp.message(F.text == "/menu")
 async def command_menu_handler(message: Message) -> None:
     """Обработчик команды /menu."""
+    cart_count = cart_item_count(message.from_user.id)
     await message.answer(
         "🍞 Главное меню пекарни Дражина:",
-        reply_markup=reply_main_menu_for(message.from_user.id)
+        reply_markup=generate_reply_main_menu(cart_count)
+    )
+    await message.answer(
+        "Inline-кнопки под сообщением для быстрого перехода:",
+        reply_markup=generate_inline_main_menu(cart_count)
     )
 
 
@@ -513,7 +522,7 @@ async def about_us(message: Message):
     await message.answer(
         text, 
         parse_mode=ParseMode.HTML, 
-        reply_markup=reply_main_menu_for(message.from_user.id)
+        reply_markup=generate_inline_main_menu(cart_item_count(message.from_user.id))
     )
 
 
@@ -524,7 +533,7 @@ async def show_addresses(message: Message):
     text = build_addresses_message()
     await message.answer(
         text,
-        reply_markup=reply_main_menu_for(message.from_user.id),
+        reply_markup=generate_inline_main_menu(cart_item_count(message.from_user.id)),
         disable_web_page_preview=True, 
         parse_mode=ParseMode.HTML
     )
@@ -537,7 +546,7 @@ async def delivery_info(message: Message):
     text = build_delivery_message()
     await message.answer(
         text, 
-        reply_markup=reply_main_menu_for(message.from_user.id),
+        reply_markup=generate_inline_main_menu(cart_item_count(message.from_user.id)),
         disable_web_page_preview=True, 
         parse_mode=ParseMode.HTML
     )
@@ -560,7 +569,7 @@ async def handle_web_app_data(message: Message):
         else:
             await message.answer(
                 "Неизвестное действие из Web App.", 
-                reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+                reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
             )
             logger.warning(f"Получено неизвестное действие из Web App для пользователя {user_id}: {action}")
 
@@ -568,13 +577,13 @@ async def handle_web_app_data(message: Message):
         logger.error(f"Неверный формат JSON данных из Web App для пользователя {user_id}: {web_app_data_raw}")
         await message.answer(
             "Ошибка обработки данных из Web App. Пожалуйста, попробуйте снова.", 
-            reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+            reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
         )
     except Exception as e:
         logger.error(f"Неизвестная ошибка при обработке данных из Web App для пользователя {user_id}: {e}")
         await message.answer(
             "Произошла внутренняя ошибка. Пожалуйста, попробуйте позже.", 
-            reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+            reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
         )
 
 
@@ -595,7 +604,7 @@ async def _handle_update_cart(message: Message, data: dict, user_id: int):
     cart_count = sum(get_user_cart(user_id).values())
     await message.answer(
         f"Корзина обновлена. Товаров в корзине: {cart_count}.",
-        reply_markup=generate_main_menu(cart_count)
+        reply_markup=generate_inline_main_menu(cart_count)
     )
     logger.info(f"Корзина пользователя {user_id} успешно обновлена из Web App. "
                f"Текущая корзина: {get_user_cart(user_id)}")
@@ -615,7 +624,7 @@ async def _handle_checkout_order(message: Message, data: dict, user_id: int):
                         f"order_details: {order_details}, cart_items: {cart_items}")
             await message.answer(
                 "Ошибка при оформлении заказа. Пожалуйста, попробуйте снова.", 
-                reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+                reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
             )
             return
             
@@ -625,7 +634,7 @@ async def _handle_checkout_order(message: Message, data: dict, user_id: int):
                         f"order_details: {order_details}, cart_items: {cart_items}")
             await message.answer(
                 "❌ Ошибка валидации данных:\n• Field total_amount must be number, got NoneType", 
-                reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+                reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
             )
             return
 
@@ -634,7 +643,7 @@ async def _handle_checkout_order(message: Message, data: dict, user_id: int):
             logger.warning(f"Попытка оформить заказ с пустой корзиной от пользователя {user_id}")
             await message.answer(
                 "Корзина пуста. Пожалуйста, добавьте товары в корзину перед оформлением заказа.", 
-                reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+                reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
             )
             return
 
@@ -643,7 +652,7 @@ async def _handle_checkout_order(message: Message, data: dict, user_id: int):
             logger.warning(f"Попытка оформить заказ с нулевой суммой от пользователя {user_id}")
             await message.answer(
                 "Сумма заказа должна быть больше нуля. Пожалуйста, добавьте товары в корзину.", 
-                reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+                reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
             )
             return
 
@@ -674,7 +683,7 @@ async def _handle_checkout_order(message: Message, data: dict, user_id: int):
             await asyncio.wait_for(
                 message.answer(
                     f"✅ Заказ оформлен! Детали отправлены вам в личные сообщения.",
-                    reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+                    reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
                 ),
                 timeout=10.0  # 10 секунд timeout
             )
@@ -697,7 +706,7 @@ async def _handle_checkout_order(message: Message, data: dict, user_id: int):
         logger.error(f"Критическая ошибка при обработке заказа для пользователя {user_id}: {e}")
         await message.answer(
             "Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте позже или свяжитесь с нами.", 
-            reply_markup=generate_main_menu(sum(get_user_cart(user_id).values()))
+            reply_markup=generate_inline_main_menu(sum(get_user_cart(user_id).values()))
         )
 
 
